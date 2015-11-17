@@ -1,0 +1,6 @@
+
+# for now we ignore everything
+*.aux
+*.pdf
+*.log
+*.out

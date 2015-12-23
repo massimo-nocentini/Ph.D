@@ -8,7 +8,7 @@ where there's a work-in-progress [notebook].
 
 Event log:
 
-    - **December 2015, 22**: make a proposal for the project: a study of the average number of checks in the
+  - **December 2015, 22**: make a proposal for the project: a study of the average number of checks in the
         standard Quicksort implementation, with the pivot is the right-most element. Also, a little 
         discussion happen about difficulties and ideas.
 

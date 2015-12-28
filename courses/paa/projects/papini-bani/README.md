@@ -14,5 +14,5 @@ Event log:
 
 [here]:http://nbviewer.jupyter.org/github/massimo-nocentini/PhD/blob/master/courses/paa/projects/papini-bani/Papini%20and%20Bani%27s%20PAA%20Project%20proposal.ipynb?flush_cache=true
 [GitHub]:https://github.com/oddlord/progetto-paa
-[notebook]:http://nbviewer.jupyter.org/github/oddlord/progetto-paa/blob/master/Progetto%20PAA.ipynb?flush_cache=true
+[notebook]:http://nbviewer.jupyter.org/github/oddlord/paa-project/blob/master/Progetto%20PAA.ipynb?flush_cache=true
 

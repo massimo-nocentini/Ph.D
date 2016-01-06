@@ -20,87 +20,127 @@ def take_apart_matched(term, indexed):
     return result
 
 
-def unfold_recurrence(recurrence_eq, unfolding_recurrence_eq, indexed, index, 
-                      terms_cache={}, evaluate=False):
+def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
 
-    def unfolding(rhs_term):
-        
-        if rhs_term in terms_cache: return terms_cache[rhs_term]
-        
-        matched_rhs_term = take_apart_matched(rhs_term, indexed)
-        unfolded_term = rhs_term
-        
-        if matched_rhs_term:
+    if not unfolding_recurrence_spec: unfolding_recurrence_spec = recurrence_spec
+
+    def worker(recurrence_eq, unfolding_recurrence_eq, indexed, index, terms_cache):
+
+        def unfolding(rhs_term):
             
-            matched_lhs_term = take_apart_matched(recurrence_eq.lhs, indexed)
-        
-            def match_linear(subscript, variable):
+            if rhs_term in terms_cache: return terms_cache[rhs_term]
+            
+            matched_rhs_term = take_apart_matched(rhs_term, indexed)
+            unfolded_term = rhs_term
+            
+            if matched_rhs_term:
                 
-                a_wild, b_wild = Wild('a', exclude=[variable]), Wild('b', exclude=[variable])
-                matched = subscript.match(a_wild*variable + b_wild)
+                matched_lhs_term = take_apart_matched(recurrence_eq.lhs, indexed)
+            
+                def match_linear(subscript, variable):
+                    
+                    a_wild, b_wild = Wild('a', exclude=[variable]), Wild('b', exclude=[variable])
+                    matched = subscript.match(a_wild*variable + b_wild)
+                    
+                    if not matched: return None
+                    
+                    a, b = matched[a_wild], matched[b_wild]
+                    normalizer = lambda term: term.replace(variable, variable - (b/a))
+                   
+                    return normalizer
                 
-                if not matched: return None
+                lhs_normalizer = match_linear(matched_lhs_term['subscript'], index)
                 
-                a, b = matched[a_wild], matched[b_wild]
-                normalizer = lambda term: term.replace(variable, variable - (b/a))
-               
-                return normalizer
+                norm_lhs = lhs_normalizer(recurrence_eq.lhs)
+                subs_lhs = norm_lhs.replace(index, matched_rhs_term['subscript'])
+                matched_subs_lhs_term = take_apart_matched(subs_lhs, indexed)
+                # since subscripts are equal by substitution, we have to check coefficients
+                assert matched_subs_lhs_term['subscript'] == matched_rhs_term['subscript']
+                if matched_subs_lhs_term['coeff'] == matched_rhs_term['coeff']:
+                    rebuilt_rhs_term = lhs_normalizer(recurrence_eq.rhs)
+                    unfolded_term = rebuilt_rhs_term.replace(index, matched_rhs_term['subscript'])
+                    terms_cache[rhs_term] = unfolded_term
+                
+            return unfolded_term    
             
-            lhs_normalizer = match_linear(matched_lhs_term['subscript'], index)
+        unfolded_rhs_terms = map(unfolding, flatten(unfolding_recurrence_eq.rhs.args, cls=Add))
+        
+        folded_rhs_term = reduce(   lambda folded, addend: Add(folded, addend, evaluate=False), 
+                                    unfolded_rhs_terms)
+        
+        return dict(recurrence_eq=Eq(recurrence_eq.lhs, folded_rhs_term),
+                    indexed=indexed,
+                    index=index,
+                    terms_cache=terms_cache)
+
+    return worker(  recurrence_spec['recurrence_eq'],
+                    unfolding_recurrence_spec['recurrence_eq'],
+                    unfolding_recurrence_spec['indexed'],
+                    unfolding_recurrence_spec['index'],
+                    unfolding_recurrence_spec['terms_cache'].copy())
+
+
+
+def factor_rhs_unfolded_rec(unfolded_recurrence_spec):
+
+    unfolded_recurrence_eq = unfolded_recurrence_eq['recurrence_eq']
+
+    factored_spec = dict(**unfolded_recurrence_spec)
+    factored_spec['recurrence_eq'] = Eq(unfolded_recurrence_eq.lhs, 
+        Poly(unfolded_recurrence_eq.rhs).args[0])
+
+    return factored_spec
+
+
+
+def do_unfolding_steps(recurrence_spec, steps=1, factor_rhs=False):
+        
+    def reducer(working_recurrence_spec, step): 
+        return unfold_recurrence(recurrence_spec, working_recurrence_spec)
+
+    unfolded_recurrence_spec = reduce(reducer, range(steps), recurrence_spec)
+    
+    return factor_rhs_unfolded_rec(unfolded_recurrence_spec) if factor_rhs else unfolded_recurrence_spec
+
+
+def base_instantiation(unfolded_recurrence_spec, base_index=0):
+
+    def worker(recurrence_eq, indexed, index, terms_cache):
+
+        rhs = recurrence_eq.rhs
+        rhs_summands = flatten(rhs.args, cls=Add)
+        
+        def subscript_equation_maker(rhs_term):
             
-            norm_lhs = lhs_normalizer(recurrence_eq.lhs)
-            subs_lhs = norm_lhs.replace(index, matched_rhs_term['subscript'])
-            matched_subs_lhs_term = take_apart_matched(subs_lhs, indexed)
-            # since subscripts are equal by substitution, we have to check coefficients
-            assert matched_subs_lhs_term['subscript'] == matched_rhs_term['subscript']
-            if matched_subs_lhs_term['coeff'] == matched_rhs_term['coeff']:
-                rebuilt_rhs_term = lhs_normalizer(recurrence_eq.rhs)
-                unfolded_term = rebuilt_rhs_term.replace(index, matched_rhs_term['subscript'])
-                terms_cache[rhs_term] = unfolded_term
+            matched = take_apart_matched(rhs_term, indexed)
             
-        return unfolded_term    
+            return Eq(matched['subscript'], base_index) if matched else None
         
-    unfolded_rhs_terms = map(unfolding, flatten(unfolding_recurrence_eq.rhs.args, cls=Add))
-    
-    folded_rhs_term = reduce(lambda folded, addend: Add(folded, addend, evaluate=False), unfolded_rhs_terms)
-    
-    return Eq(recurrence_eq.lhs, folded_rhs_term)
-
-def evaluate_unfolded_rec(unfolded_recurrence):
-    return Eq(unfolded_recurrence.lhs, Poly(unfolded_recurrence.rhs).args[0])
-
-def do_unfolding_steps(recurrence, steps=1, terms_cache={}, **options):
-    
-    recurrence_eq, c, n = recurrence
-    
-    #if 'terms_cache' not in options: 
-    #    terms_cache = {}
-    #    options['terms_cache']=terms_cache
+        valid_equations = filter(lambda x: False if x is None else True, 
+                                 map(subscript_equation_maker, rhs_summands))
         
-    def reducer(working_recurrence_eq, step): 
-        return unfold_recurrence(recurrence_eq, working_recurrence_eq, c, n, terms_cache, **options)
-
-    unfolded_recurrence = reduce(reducer, range(steps), recurrence_eq)
-    evaluate = 'evaluate' in options and options['evaluate']
-    
-    return evaluate_unfolded_rec(unfolded_recurrence) if evaluate else unfolded_recurrence
-
-def base_instantiation(unfolded_recurrence_eq, indexed, variable):
-    
-    rhs = unfolded_recurrence_eq.rhs
-    rhs_summands = flatten(rhs.args, cls=Add)
-    
-    def subscript_equation_maker(rhs_term):
+        solutions = map(lambda eq: solve(eq, index)[0], valid_equations)
         
-        matched = take_apart_matched(rhs_term, indexed)
-        
-        return Eq(matched['subscript'],0) if matched else None
-    
-    valid_equations = filter(lambda x: False if x is None else True, 
-                             map(subscript_equation_maker, rhs_summands))
-    
-    solutions = map(lambda eq: solve(eq, variable)[0], valid_equations)
-    
-    return unfolded_recurrence_eq.subs(variable, max(solutions))
+        satisfying_index = max(solutions)
 
+        def subs_index_into(term): return term.subs(index, satisfying_index)
+
+        new_terms_cache = {}
+        for k,v in terms_cache.items(): 
+            new_terms_cache[subs_index_into(k)] = subs_index_into(v)
+
+        return dict(recurrence_eq=subs_index_into(recurrence_eq),
+                    indexed=indexed,
+                    index=satisfying_index,
+                    terms_cache=new_terms_cache)
+
+    return worker(**unfolded_recurrence_spec)
+
+def project_recurrence_spec(recurrence_spec, **props):
+    
+    projected = []
+    for k,v in props.items(): 
+        if v: projected.append(recurrence_spec[k])
+
+    return projected[0] if len(projected) == 1 else tuple(projected)
 

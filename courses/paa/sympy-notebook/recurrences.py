@@ -1,5 +1,6 @@
 
 from functools import reduce
+from string import Template
 
 def take_apart_matched(term, indexed):
     
@@ -83,7 +84,7 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
 
 def factor_rhs_unfolded_rec(unfolded_recurrence_spec):
 
-    unfolded_recurrence_eq = unfolded_recurrence_eq['recurrence_eq']
+    unfolded_recurrence_eq = unfolded_recurrence_spec['recurrence_eq']
 
     factored_spec = dict(**unfolded_recurrence_spec)
     factored_spec['recurrence_eq'] = Eq(unfolded_recurrence_eq.lhs, 
@@ -140,7 +141,42 @@ def project_recurrence_spec(recurrence_spec, **props):
     
     projected = []
     for k,v in props.items(): 
-        if v: projected.append(recurrence_spec[k])
+        if v and k in recurrence_spec: projected.append(recurrence_spec[k])
 
     return projected[0] if len(projected) == 1 else tuple(projected)
 
+
+def times_higher_order_operator(recurrence_spec, times_range=range(6), 
+        operator=lambda *args: tuple(args), instantiate=True):
+
+    def worker(working_steps):
+
+        unfolded_evaluated_spec = do_unfolding_steps(
+            recurrence_spec, working_steps, factor_rhs=True)
+
+        recurrence_spec['terms_cache'] = unfolded_evaluated_spec['terms_cache'] 
+
+        processed_recurrence_spec = base_instantiation(unfolded_evaluated_spec) \
+            if instantiate else unfolded_evaluated_spec
+
+        return operator(processed_recurrence_spec, working_steps)
+
+    return map(worker, times_range)
+
+
+def latex_array_env(*args, **kwd):
+    
+    def eqnarray_entry_for_eq(processed_spec, working_steps):
+        processed_eq = project_recurrence_spec(processed_spec, recurrence_eq=True)
+        return latex(processed_eq) + r"\\"
+
+    mapped = times_higher_order_operator(*args, **kwd, operator=eqnarray_entry_for_eq)
+    template = Template(r"""\begin{array}{c}$content\end{array}""")
+
+    return template.substitute(content="\n".join(mapped))
+
+
+def ipython_latex(*args, **kwd):
+    
+    from IPython.display import Latex
+    return Latex(latex_array_env(*args, **kwd))

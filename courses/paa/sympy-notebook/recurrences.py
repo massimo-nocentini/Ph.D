@@ -147,7 +147,9 @@ def project_recurrence_spec(recurrence_spec, **props):
 
 
 def times_higher_order_operator(recurrence_spec, times_range=range(6), 
-        operator=lambda *args: tuple(args), instantiate=True):
+        operator=lambda *args: tuple(args), instantiate=True, include_last_terms_cache=False):
+
+    initial_terms_cache = recurrence_spec['terms_cache'].copy()
 
     def worker(working_steps):
 
@@ -161,7 +163,51 @@ def times_higher_order_operator(recurrence_spec, times_range=range(6),
 
         return operator(processed_recurrence_spec, working_steps)
 
-    return map(worker, times_range)
+    mapped = map(worker, times_range)
+
+    last_terms_cache = recurrence_spec['terms_cache'].copy()
+    recurrence_spec['terms_cache'] = initial_terms_cache
+
+    return mapped if not include_last_terms_cache else (mapped, last_terms_cache)
+
+
+def repeated_instantiating(base_instantiated_rec_spec):
+    
+    # from sympy.core.add import _unevaluated_Add as uAdd
+
+    indexed = base_instantiated_rec_spec['indexed']
+    
+    def worker(previous_terms_cache, do_one_more_step):
+    
+        if not do_one_more_step: return previous_terms_cache
+        else: do_one_more_step = False
+            
+        def subterm_mapping(subterm):    
+                
+            nonlocal do_one_more_step
+            new_subterm = subterm
+            
+            if subterm.free_symbols:
+                new_subterm = subterm.subs(previous_terms_cache)
+                if subterm != new_subterm: do_one_more_step = True
+                
+            return new_subterm
+            
+        current_terms_cache = {k:subterm_mapping(v) for k,v in previous_terms_cache.items()}
+        
+        return worker(current_terms_cache, do_one_more_step)
+
+    
+    fully_instantiated_terms_cache = worker(base_instantiated_rec_spec['terms_cache'], 
+                                            do_one_more_step=True)
+    
+    fully_instantiated_rec_eq = base_instantiated_rec_spec['recurrence_eq'].subs(
+        fully_instantiated_terms_cache)
+    
+    return dict(recurrence_eq=fully_instantiated_rec_eq, 
+                indexed=indexed,
+                index=base_instantiated_rec_spec['index'],
+                terms_cache=fully_instantiated_terms_cache)
 
 
 def latex_array_env(*args, **kwd):

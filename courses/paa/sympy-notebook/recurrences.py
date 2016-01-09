@@ -38,7 +38,7 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
                 
                 matched_lhs_term = take_apart_matched(recurrence_eq.lhs, indexed)
             
-                def match_linear(subscript, variable):
+                def linear_matcher(subscript, variable):
                     
                     a_wild, b_wild = Wild('a', exclude=[variable]), Wild('b', exclude=[variable])
                     matched = subscript.match(a_wild*variable + b_wild)
@@ -46,21 +46,28 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
                     if not matched: return None
                     
                     a, b = matched[a_wild], matched[b_wild]
-                    normalizer = lambda term: term.replace(variable, variable - (b/a))
+                    normalizer = lambda term: term.replace(variable, (variable - b)/a)
                    
                     return normalizer
                 
-                lhs_normalizer = match_linear(matched_lhs_term['subscript'], index)
+                lhs_normalizer = linear_matcher(matched_lhs_term['subscript'], index)
                 
                 norm_lhs = lhs_normalizer(recurrence_eq.lhs)
                 subs_lhs = norm_lhs.replace(index, matched_rhs_term['subscript'])
                 matched_subs_lhs_term = take_apart_matched(subs_lhs, indexed)
+
                 # since subscripts are equal by substitution, we have to check coefficients
                 assert matched_subs_lhs_term['subscript'] == matched_rhs_term['subscript']
+                rebuilt_rhs_term = lhs_normalizer(recurrence_eq.rhs)
+
                 if matched_subs_lhs_term['coeff'] == matched_rhs_term['coeff']:
-                    rebuilt_rhs_term = lhs_normalizer(recurrence_eq.rhs)
                     unfolded_term = rebuilt_rhs_term.replace(index, matched_rhs_term['subscript'])
                     terms_cache[rhs_term] = unfolded_term
+                elif index not in matched_subs_lhs_term['coeff'].free_symbols:
+                    unfolded_term = Mul(rebuilt_rhs_term.replace(index, matched_rhs_term['subscript']), 
+                                            matched_rhs_term['coeff']/matched_subs_lhs_term['coeff'])
+                    terms_cache[rhs_term] = unfolded_term
+
                 
             return unfolded_term    
             
@@ -92,16 +99,54 @@ def factor_rhs_unfolded_rec(unfolded_recurrence_spec):
 
     return factored_spec
 
+def apply_if(f, guard):
 
-
-def do_unfolding_steps(recurrence_spec, steps=1, factor_rhs=False):
+    def applying(*args, **kwds):
         
-    def reducer(working_recurrence_spec, step): 
-        return unfold_recurrence(recurrence_spec, working_recurrence_spec)
+        result = args, kwds
 
-    unfolded_recurrence_spec = reduce(reducer, range(steps), recurrence_spec)
+        if guard: result = f(*args, **kwds) 
+        elif not kwds: result = args if len(args) > 1 else args[0]
+        elif not args: result = kwds
+
+        return result
+
+    return applying
+
+def do_unfolding_steps(recurrence_spec, steps=1, factor_rhs=False, 
+                        keep_intermediate_unfoldings=False, first_order=True):
+        
+    def first_order_reducer(working_recurrence_spec_folded, step): 
+
+        unfoldings, working_recurrence_spec = working_recurrence_spec_folded
+
+        unfolded_spec = unfold_recurrence(recurrence_spec, working_recurrence_spec)
+        unfoldings.update({step:unfolded_spec})
+
+        return unfoldings, unfolded_spec
     
-    return factor_rhs_unfolded_rec(unfolded_recurrence_spec) if factor_rhs else unfolded_recurrence_spec
+    def second_order_reducer(working_recurrence_spec_folded, step): 
+
+        unfoldings, working_recurrence_spec = working_recurrence_spec_folded
+
+        unfolded_spec = unfold_recurrence(working_recurrence_spec, working_recurrence_spec)
+        unfoldings.update({step:unfolded_spec})
+
+        return unfoldings, unfolded_spec
+
+    unfoldings, unfolded_recurrence_spec = reduce(
+        first_order_reducer if first_order else second_order_reducer, 
+        range(steps), ({}, recurrence_spec))
+    
+    result = None
+    if keep_intermediate_unfoldings:
+        result = {k:factor_rhs_unfolded_rec(v) for k,v in unfoldings.items()} \
+            if factor_rhs else unfoldings
+    else:
+        result = factor_rhs_unfolded_rec(unfolded_recurrence_spec) \
+            if factor_rhs else unfolded_recurrence_spec
+
+    return result
 
 
 def base_instantiation(unfolded_recurrence_spec, base_index=0):
@@ -126,9 +171,8 @@ def base_instantiation(unfolded_recurrence_spec, base_index=0):
 
         def subs_index_into(term): return term.subs(index, satisfying_index)
 
-        new_terms_cache = {}
-        for k,v in terms_cache.items(): 
-            new_terms_cache[subs_index_into(k)] = subs_index_into(v)
+        new_terms_cache = {subs_index_into(k):subs_index_into(v)
+                            for k,v in terms_cache.items()}
 
         return dict(recurrence_eq=subs_index_into(recurrence_eq),
                     indexed=indexed,
@@ -156,10 +200,10 @@ def times_higher_order_operator(recurrence_spec, times_range=range(6),
         unfolded_evaluated_spec = do_unfolding_steps(
             recurrence_spec, working_steps, factor_rhs=True)
 
-        recurrence_spec['terms_cache'] = unfolded_evaluated_spec['terms_cache'] 
+        recurrence_spec['terms_cache'].update(unfolded_evaluated_spec['terms_cache'] )
 
-        processed_recurrence_spec = base_instantiation(unfolded_evaluated_spec) \
-            if instantiate else unfolded_evaluated_spec
+        processed_recurrence_spec = apply_if(
+            base_instantiation, instantiate)(unfolded_evaluated_spec)
 
         return operator(processed_recurrence_spec, working_steps)
 

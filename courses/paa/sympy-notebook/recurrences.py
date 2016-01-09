@@ -58,14 +58,23 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
 
                 # since subscripts are equal by substitution, we have to check coefficients
                 assert matched_subs_lhs_term['subscript'] == matched_rhs_term['subscript']
-                rebuilt_rhs_term = lhs_normalizer(recurrence_eq.rhs)
 
                 if matched_subs_lhs_term['coeff'] == matched_rhs_term['coeff']:
+                    rebuilt_rhs_term = lhs_normalizer(recurrence_eq.rhs)
                     unfolded_term = rebuilt_rhs_term.replace(index, matched_rhs_term['subscript'])
                     terms_cache[rhs_term] = unfolded_term
-                elif index not in matched_subs_lhs_term['coeff'].free_symbols:
-                    unfolded_term = Mul(rebuilt_rhs_term.replace(index, matched_rhs_term['subscript']), 
-                                            matched_rhs_term['coeff']/matched_subs_lhs_term['coeff'])
+                #elif index not in matched_subs_lhs_term['coeff'].free_symbols:
+                else:
+                    norm_lhs = lhs_normalizer(recurrence_eq.lhs)
+                    matched_norm_lhs = take_apart_matched(norm_lhs, indexed)
+                    #print(matched_norm_lhs['coeff'])
+                    rebuilt_rhs_term = Mul(lhs_normalizer(recurrence_eq.rhs), 
+                        Integer(1)/matched_norm_lhs['coeff'])
+                    #print(rebuilt_rhs_term)
+                    subterm = rebuilt_rhs_term.replace(index, matched_rhs_term['subscript'])
+                    #print(subterm)
+                    unfolded_term = Mul(matched_rhs_term['coeff'], subterm)
+                    #print(unfolded_term)
                     terms_cache[rhs_term] = unfolded_term
 
                 
@@ -87,15 +96,28 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
                     unfolding_recurrence_spec['index'],
                     unfolding_recurrence_spec['terms_cache'].copy())
 
+def indexed_terms_appearing_in(term, indexed):
 
+    def worker(subterm):
+        matched = take_apart_matched(subterm, indexed)
+
+        if not matched: return None
+
+        return indexed[matched['subscript']]
+
+    return set(filter(  lambda subterm: False if subterm is None else True, 
+                    map(worker, flatten(term.args, cls=Add))))
 
 def factor_rhs_unfolded_rec(unfolded_recurrence_spec):
 
     unfolded_recurrence_eq = unfolded_recurrence_spec['recurrence_eq']
 
+    indexed_terms_in_rec = indexed_terms_appearing_in(
+        unfolded_recurrence_eq.rhs.expand(), unfolded_recurrence_spec['indexed'])
+
     factored_spec = dict(**unfolded_recurrence_spec)
     factored_spec['recurrence_eq'] = Eq(unfolded_recurrence_eq.lhs, 
-        Poly(unfolded_recurrence_eq.rhs).args[0])
+        Poly(unfolded_recurrence_eq.rhs, *list(indexed_terms_in_rec)).args[0])
 
     return factored_spec
 

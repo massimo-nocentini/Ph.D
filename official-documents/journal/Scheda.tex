@@ -231,13 +231,15 @@ Seminario sull'argomento di tesi]
 
 \begin{description}
 
-\item[26/11/2015] a lecture for \href{http://www.unifi.it/index.php?module=ofform2\&mode=1\&cmd=3\&AA=2015\&afId=426024}
-    {B018968 - PROGETTAZIONE E ANALISI DI ALGORITMI} course, 3 hours. Content: an introduction to 
-    \href{http://www.sympy.org/en/index.html}{SymPy}, covered object and meta language, basic symbolic 
+\item[26/11/2015: introduction to SymPy, a computer algebra system] a lecture for 
+    \emph{B018968 - PROGETTAZIONE E ANALISI DI ALGORITMI}\footnote{\url{http://www.unifi.it/index.php?module=ofform2\&mode=1\&cmd=3\&AA=2015\&afId=426024}} 
+    course, 3 hours. Content: an introduction to 
+    \emph{SymPy}\footnote{\url{http://www.sympy.org/en/index.html}}, covered object and meta language, basic symbolic 
     manipulations, Taylor series expansions, Fibonacci numbers and solved Quicksort's swap recurrence
-    in the average case. We provided a \emph{notebook} in \href{http://jupyter.org/}{Jupyter} jargon, available 
-    at \href{https://github.com/massimo-nocentini/PhD/tree/master/courses/paa}{my PhD repo} and browseable
-    on line through \href{http://nbviewer.jupyter.org/github/massimo-nocentini/PhD/blob/master/courses/paa/sympy-notebook/an-introduction-to-sympy.ipynb?flush\_cache=true}{Jupyter viewer}.
+    in the average case. We provided an \emph{IPython notebook}, released as an open-source project within
+    my \emph{GitHub} repository \footnote{\url{https://github.com/massimo-nocentini/PhD/tree/master/courses/paa}}
+    and browseable on line\footnote{\url{http://nbviewer.jupyter.org/github/massimo-nocentini/PhD/blob/master/courses/paa/sympy-notebook/an-introduction-to-sympy.ipynb?flush\_cache=true}} 
+    through \emph{Jupyter} viewer.
 
 \end{description}
 
@@ -245,9 +247,30 @@ Seminario sull'argomento di tesi]
 
 \begin{description}
 
-\item[%inserire le date
-] 
-%inserire evento
+\item[January 2015: recurrences unfolding in SymPy] 
+    Implementation of a Python module which allows us to unfold
+    recurrence relations, built on top of SymPy. The following are basics idea underlying
+    this module:
+    \begin{itemize}
+        \item understand recurrence's left hand side as a rewriting rule;
+        \item do pattern matching on the \emph{whole} recurrence's left hand side,
+            in order to proper unfold subterms belonging to recurrence's right hand
+            side. This is an enhancement respect plain substitution, which eventually
+            happen if whole pattern matching fails; 
+        \item handle recurrences with both forwards and backwards subscripts on the
+            left hand side;
+        \item repeat unfolding up to a desired number of times, both using first order
+            (namely, unfolding is always perfomed using the main recursion schema)
+            and second order unfolding (namely, each intermediate unfold result is used
+            in the next unfolding);
+        \item do base instantiation in order to create a \emph{value-instantiated}
+            recurrence. This allows us to \emph{evaluate} the initial segment of
+            recurrence coefficients sequence, and in the case of recurrences
+            depending on more than one previous value, to build triangle-shaped characterization;
+        \item build \LaTeX\, code to produce pretty printed output.
+    \end{itemize}
+    An IPython notebook with some application of the implementation to known recurrences is available on-line 
+    \footnote{\url{http://nbviewer.jupyter.org/github/massimo-nocentini/PhD/blob/master/courses/paa/sympy-notebook/recurrences-unfolding.ipynb?flush_cache=true}}.
 
 \end{description}
 
@@ -272,6 +295,9 @@ Seminario sull'argomento di tesi]
 
 
 \section*{Gruppo di ricerca e fondi ai quali afferisce}
+
+Affiliato al Dipartimento di Statistica, Informatica, Applicazioni
+``G. Parenti'' (DiSIA).
 
 \begin{description}
 

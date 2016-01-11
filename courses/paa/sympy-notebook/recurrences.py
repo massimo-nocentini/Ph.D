@@ -27,32 +27,33 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
 
     def worker(recurrence_eq, unfolding_recurrence_eq, indexed, index, terms_cache):
 
+        def linear_matcher(subscript, variable):
+            
+            a_wild, b_wild = Wild('a', exclude=[variable]), Wild('b', exclude=[variable])
+            matched = subscript.match(a_wild*variable + b_wild)
+            
+            if not matched: return None
+            
+            a, b = matched[a_wild], matched[b_wild]
+            normalizer = lambda term: term.replace(variable, (variable - b)/a)
+           
+            return normalizer
+
+
         def unfolding(rhs_term):
             
-            if rhs_term in terms_cache: return terms_cache[rhs_term]
+            if indexed.args[0] not in rhs_term.free_symbols: return rhs_term
+            elif rhs_term in terms_cache: return terms_cache[rhs_term]
             
+            matched_lhs_term = take_apart_matched(recurrence_eq.lhs, indexed)
+            lhs_normalizer = linear_matcher(matched_lhs_term['subscript'], index)
+            norm_lhs = lhs_normalizer(recurrence_eq.lhs)
+
             matched_rhs_term = take_apart_matched(rhs_term, indexed)
             unfolded_term = rhs_term
-            
+
             if matched_rhs_term:
                 
-                matched_lhs_term = take_apart_matched(recurrence_eq.lhs, indexed)
-            
-                def linear_matcher(subscript, variable):
-                    
-                    a_wild, b_wild = Wild('a', exclude=[variable]), Wild('b', exclude=[variable])
-                    matched = subscript.match(a_wild*variable + b_wild)
-                    
-                    if not matched: return None
-                    
-                    a, b = matched[a_wild], matched[b_wild]
-                    normalizer = lambda term: term.replace(variable, (variable - b)/a)
-                   
-                    return normalizer
-                
-                lhs_normalizer = linear_matcher(matched_lhs_term['subscript'], index)
-                
-                norm_lhs = lhs_normalizer(recurrence_eq.lhs)
                 subs_lhs = norm_lhs.replace(index, matched_rhs_term['subscript'])
                 matched_subs_lhs_term = take_apart_matched(subs_lhs, indexed)
 
@@ -63,15 +64,21 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
                     rebuilt_rhs_term = lhs_normalizer(recurrence_eq.rhs)
                     unfolded_term = rebuilt_rhs_term.replace(index, matched_rhs_term['subscript'])
                     terms_cache[rhs_term] = unfolded_term
-                else:
-                    norm_lhs = lhs_normalizer(recurrence_eq.lhs)
-                    matched_norm_lhs = take_apart_matched(norm_lhs, indexed)
-                    rebuilt_rhs_term = Mul(lhs_normalizer(recurrence_eq.rhs), 
-                        Integer(1)/matched_norm_lhs['coeff'])
-                    subterm = rebuilt_rhs_term.replace(index, matched_rhs_term['subscript'])
-                    unfolded_term = Mul(matched_rhs_term['coeff'], subterm)
-                    terms_cache[rhs_term] = unfolded_term
 
+            if rhs_term not in terms_cache:
+                    matched_norm_lhs = take_apart_matched(norm_lhs, indexed)
+                    generalized_rhs_term = Mul(lhs_normalizer(recurrence_eq.rhs), 
+                        Integer(1)/matched_norm_lhs['coeff'])
+
+                    substitutions = {}
+                    for subscript in indexed_terms_appearing_in(
+                            rhs_term, indexed, only_subscripts=True, do_traversals=True):
+                        if indexed[subscript] not in terms_cache:
+                            subterm = generalized_rhs_term.replace(index, subscript)
+                            substitutions.update({indexed[subscript]: subterm})
+
+                    unfolded_term = rhs_term.subs(substitutions)
+                    terms_cache.update(substitutions)
                 
             return unfolded_term    
             
@@ -91,19 +98,21 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
                     unfolding_recurrence_spec['index'],
                     unfolding_recurrence_spec['terms_cache'].copy())
 
-def indexed_terms_appearing_in(term, indexed):
+def indexed_terms_appearing_in(term, indexed, only_subscripts=False, do_traversals=False):
 
-    def worker(subterm):
+    indexed_terms_set = set()
+
+    if do_traversals: subterms_iter = preorder_traversal(term)
+    else: subterms_iter = flatten(term.args, cls=Add)
+
+    for subterm in subterms_iter:
         matched = take_apart_matched(subterm, indexed)
-        if not matched: return None
-        return indexed[matched['subscript']]
+        if not matched: continue
+        subscript = matched['subscript']
+        indexed_terms_set.add(subscript if only_subscripts else indexed[subscript])
 
-    # in order to properly flatten `term` respect Add class,
-    # we should send the message `expand` in order to have
-    # the term completely expanded. However, this carries a 
-    # problem since a factored subterm will be taken apart.
-    return set(filter(lambda subterm: False if subterm is None else True, 
-                        map(worker, flatten(term.args, cls=Add))))
+    return indexed_terms_set
+
 
 def factor_rhs_unfolded_rec(unfolded_recurrence_spec):
 

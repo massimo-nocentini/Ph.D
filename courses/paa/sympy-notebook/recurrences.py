@@ -71,14 +71,18 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
                         Integer(1)/matched_norm_lhs['coeff'])
 
                     substitutions = {}
+                    
                     for subscript in indexed_terms_appearing_in(
                             rhs_term, indexed, only_subscripts=True, do_traversals=True):
-                        if indexed[subscript] not in terms_cache:
+                    
+                        subscripted_term = indexed[subscript]
+                        if subscripted_term not in substitutions and subscripted_term not in terms_cache:
                             subterm = generalized_rhs_term.replace(index, subscript)
-                            substitutions.update({indexed[subscript]: subterm})
+                            substitutions.update({subscripted_term: subterm})
 
-                    unfolded_term = rhs_term.subs(substitutions)
                     terms_cache.update(substitutions)
+                    unfolded_term = rhs_term.subs(terms_cache, simultaneous=True)
+                    
                 
             return unfolded_term    
             
@@ -226,7 +230,7 @@ def times_higher_order_operator(recurrence_spec, times_range=range(6),
     def worker(working_steps):
 
         unfolded_evaluated_spec = do_unfolding_steps(
-            recurrence_spec, working_steps, factor_rhs=True)
+            recurrence_spec, working_steps, factor_rhs=True, first_order=False)
 
         recurrence_spec['terms_cache'].update(unfolded_evaluated_spec['terms_cache'])
 

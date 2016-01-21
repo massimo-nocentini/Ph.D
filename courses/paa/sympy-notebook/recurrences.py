@@ -2,6 +2,8 @@
 from functools import reduce
 from string import Template
 
+from sympy import *
+
 def take_apart_matched(term, indexed):
     
     wild_coeff = Wild('coeff', exclude=[indexed])
@@ -73,7 +75,7 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
                     substitutions = {}
                     
                     for subscript in indexed_terms_appearing_in(
-                            rhs_term, indexed, only_subscripts=True, do_traversals=True):
+                            rhs_term, indexed, only_subscripts=True, do_traversal=True):
                     
                         subscripted_term = indexed[subscript]
                         if subscripted_term not in substitutions and subscripted_term not in terms_cache:
@@ -102,12 +104,11 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
                     unfolding_recurrence_spec['index'],
                     unfolding_recurrence_spec['terms_cache'].copy())
 
-def indexed_terms_appearing_in(term, indexed, only_subscripts=False, do_traversals=False):
+def indexed_terms_appearing_in(term, indexed, only_subscripts=False, do_traversal=False):
 
     indexed_terms_set = set()
 
-    if do_traversals: subterms_iter = preorder_traversal(term)
-    else: subterms_iter = flatten(term.args, cls=Add)
+    subterms_iter = preorder_traversal(term) if do_traversal else flatten(term.args, cls=Add)
 
     for subterm in subterms_iter:
         matched = take_apart_matched(subterm, indexed)
@@ -222,15 +223,20 @@ def project_recurrence_spec(recurrence_spec, **props):
     return projected[0] if len(projected) == 1 else tuple(projected)
 
 
-def times_higher_order_operator(recurrence_spec, times_range=range(6), 
-        operator=lambda *args: tuple(args), instantiate=True, include_last_terms_cache=False):
+def times_higher_order_operator(recurrence_spec, 
+        times_range=range(6), 
+        operator=lambda *args: tuple(args), 
+        instantiate=True, 
+        include_last_terms_cache=False,
+        first_order=True):
 
     initial_terms_cache = recurrence_spec['terms_cache'].copy()
 
     def worker(working_steps):
 
         unfolded_evaluated_spec = do_unfolding_steps(
-            recurrence_spec, working_steps, factor_rhs=True, first_order=False)
+            recurrence_spec, working_steps, factor_rhs=True, 
+            first_order=first_order)
 
         recurrence_spec['terms_cache'].update(unfolded_evaluated_spec['terms_cache'])
 
@@ -249,10 +255,6 @@ def times_higher_order_operator(recurrence_spec, times_range=range(6),
 
 def repeated_instantiating(base_instantiated_rec_spec):
     
-    # from sympy.core.add import _unevaluated_Add as uAdd
-
-    indexed = base_instantiated_rec_spec['indexed']
-    
     def worker(previous_terms_cache, do_one_more_step):
     
         if not do_one_more_step: return previous_terms_cache
@@ -269,7 +271,7 @@ def repeated_instantiating(base_instantiated_rec_spec):
                 
             return new_subterm
             
-        current_terms_cache = {k:subterm_mapping(v) for k,v in previous_terms_cache.items()}
+        current_terms_cache = { k:subterm_mapping(v) for k,v in previous_terms_cache.items() }
         
         return worker(current_terms_cache, do_one_more_step)
 
@@ -281,7 +283,7 @@ def repeated_instantiating(base_instantiated_rec_spec):
         fully_instantiated_terms_cache)
     
     return dict(recurrence_eq=fully_instantiated_rec_eq, 
-                indexed=indexed,
+                indexed=base_instantiated_rec_spec['indexed'],
                 index=base_instantiated_rec_spec['index'],
                 terms_cache=fully_instantiated_terms_cache)
 
@@ -292,7 +294,7 @@ def latex_array_env(*args, **kwd):
         processed_eq = project_recurrence_spec(processed_spec, recurrence_eq=True)
         return latex(processed_eq) + r"\\"
 
-    mapped = times_higher_order_operator(*args, **kwd, operator=eqnarray_entry_for_eq)
+    mapped = times_higher_order_operator(*args, operator=eqnarray_entry_for_eq, **kwd)
     template = Template(r"""\begin{array}{c}$content\end{array}""")
 
     return template.substitute(content="\n".join(mapped))

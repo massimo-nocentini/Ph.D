@@ -1,7 +1,8 @@
 % article example for classicthesis.sty
-\documentclass[a4paper]{report} % KOMA-Script article scrartcl
+\documentclass[a4paper,dottedtoc,headinclude,footinclude]{report} % KOMA-Script article scrartcl
 
-\usepackage[beramono,eulermath]{classicthesis} % nochapters
+\usepackage[pdfspacing,beramono,eulermath]{classicthesis} % nochapters
+\usepackage{arsclassica}
 \usepackage{lipsum}
 \usepackage{url}
 \usepackage{graphicx}
@@ -13,6 +14,23 @@
 \usepackage{marginnote}
 \usepackage{bbold}
 \usepackage{minted}
+\usepackage[T1]{fontenc} % T2A for cyrillics
+\usepackage[utf8]{inputenc}				
+
+\newcommand{\R}{{\mathbb R}}
+\newcommand{\Q}{{\mathbb Q}}
+\newcommand{\C}{{\mathbb C}}
+\newcommand{\N}{{\mathbb N}}
+\newcommand{\Z}{{\mathbb Z}}
+
+\theoremstyle{plain}
+%\numberwithin{equation}{section}
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{theorem}[thm]{Theorem}
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{example}[thm]{Example}
+\newtheorem{definition}[thm]{Definition}
+\newtheorem{proposition}[thm]{Proposition}
 
 \begin{document}
 
@@ -33,14 +51,34 @@
        
     \tableofcontents
     
-    \section{A Section}
-    \finalVersionString \lipsum[1]
+    \chapter{Quicksort recurrences}
+
+    \section{On the average number of checks}
+    Let $c_{n}$ be the number of checks occuring on the computation
+    of Quicksort algorithm on a vector of length $n$. After some manipulation
+    starting from a general relation over $c_{n}$, the following
+    recurrence relation can be derived:
+    \begin{displaymath}
+        \frac{c_{n}}{n + 1} = \frac{2}{n + 1} + \frac{1}{n} c_{n - 1}
+    \end{displaymath}
+    here is a terms cache:
+    \begin{center}
+    \begin{displaymath}
+        \left \{ \frac{1}{n} c_{n - 1} : \frac{c_{n - 2}}{n - 1} + \frac{2}{n}, \quad \frac{c_{n - 4}}{n - 3} : \frac{2}{n - 3} + \frac{c_{n - 5}}{n - 4}, \quad \frac{c_{n - 3}}{n - 2} : \frac{2}{n - 2} + \frac{c_{n - 4}}{n - 3}, \quad \frac{c_{n - 2}}{n - 1} : \frac{2}{n - 1} + \frac{c_{n - 3}}{n - 2}\right \}
+    \end{displaymath}
+    \end{center}
+
     \subsection{A Subsection}
     \lipsum[1]
 
     \section{A Section}
     \lipsum[1]
     
+    \subsection{A Subsection}
+    \lipsum[1]
+    \subsection{A Subsection}
+    \lipsum[1]
+
     \iffalse
     % bib stuff
     \nocite{*}
@@ -49,4 +87,5 @@
     \bibliographystyle{plain}
     \bibliography{../Bibliography}
     \fi
+
 \end{document}

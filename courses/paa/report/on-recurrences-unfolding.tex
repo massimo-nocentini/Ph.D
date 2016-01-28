@@ -1,0 +1,52 @@
+% article example for classicthesis.sty
+\documentclass[a4paper]{report} % KOMA-Script article scrartcl
+
+\usepackage[beramono,eulermath]{classicthesis} % nochapters
+\usepackage{lipsum}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsthm, latexsym}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{caption}
+\usepackage{marginnote}
+\usepackage{bbold}
+\usepackage{minted}
+
+\begin{document}
+
+    \title{\rmfamily\normalfont\spacedallcaps{On recurrences unfolding}}
+    \author{\spacedlowsmallcaps{Massimo Nocentini}}
+    \date{\today} 
+    
+    \maketitle
+    
+    \begin{abstract}
+        \noindent In this document we show an implementation of a prototype 
+        using the \emph{Python} language, on top of \emph{SymPy} module.
+        It allows us to \emph{unfold} recurrence relations, where there
+        is \emph{one} free variable. We show some applications to recurrences
+        describing average numbers of Quicksort's checks and swaps; moreover, 
+        possibly new characterizations for Fibonacci numbers are given.
+    \end{abstract}
+       
+    \tableofcontents
+    
+    \section{A Section}
+    \finalVersionString \lipsum[1]
+    \subsection{A Subsection}
+    \lipsum[1]
+
+    \section{A Section}
+    \lipsum[1]
+    
+    \iffalse
+    % bib stuff
+    \nocite{*}
+    \addtocontents{toc}{\protect\vspace{\beforebibskip}}
+    \addcontentsline{toc}{section}{\refname}    
+    \bibliographystyle{plain}
+    \bibliography{../Bibliography}
+    \fi
+\end{document}

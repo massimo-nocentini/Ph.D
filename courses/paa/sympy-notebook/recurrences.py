@@ -4,6 +4,13 @@ from string import Template
 
 from sympy import *
 
+def make_recurrence_spec(**kwds):
+    assert  'recurrence_eq' in kwds and \
+            'index' in kwds and \
+            'indexed' in kwds and \
+            'terms_cache' in kwds, "Missed key in making recurrence spec"
+    return kwds
+
 def take_apart_matched(term, indexed):
     
     wild_coeff = Wild('coeff', exclude=[indexed])
@@ -132,20 +139,6 @@ def factor_rhs_unfolded_rec(unfolded_recurrence_spec):
 
     return factored_spec
 
-def apply_if(f, guard):
-
-    def applying(*args, **kwds):
-        
-        result = args, kwds
-
-        if guard: result = f(*args, **kwds) 
-        elif not kwds: result = args if len(args) > 1 else args[0]
-        elif not args: result = kwds
-
-        return result
-
-    return applying
-
 def do_unfolding_steps(recurrence_spec, steps=1, factor_rhs=False, 
                         keep_intermediate_unfoldings=False, first_order=True):
         
@@ -240,8 +233,8 @@ def times_higher_order_operator(recurrence_spec,
 
         recurrence_spec['terms_cache'].update(unfolded_evaluated_spec['terms_cache'])
 
-        processed_recurrence_spec = apply_if(
-            base_instantiation, instantiate)(unfolded_evaluated_spec)
+        processed_recurrence_spec = unfolded_evaluated_spec
+        if instantiate: processed_recurrence_spec = base_instantiation(processed_recurrence_spec)
 
         return operator(processed_recurrence_spec, working_steps)
 
@@ -287,6 +280,36 @@ def repeated_instantiating(base_instantiated_rec_spec):
                 index=base_instantiated_rec_spec['index'],
                 terms_cache=fully_instantiated_terms_cache)
 
+def take_sol(*args, sol_index=0):
+    sols = solve(*args)
+    return sols[sol_index]
+
+def subsume_cache(recurrence_spec):#, new_index_symbol=None):
+
+    recurrence_eq, index, indexed, terms_cache = (
+        recurrence_spec['recurrence_eq'], 
+        recurrence_spec['index'], 
+        recurrence_spec['indexed'], 
+        recurrence_spec['terms_cache'])
+
+    #if new_index_symbol is None: new_index_symbol = index
+
+    subsumed_rec_specs = {}
+
+    for k,v in terms_cache.items():
+        kv_eq = Eq(k, v)
+        matched_key = take_apart_matched(k, indexed)
+        if matched_key:
+            subscript, dummy_sym = matched_key['subscript'], Dummy()
+            sol = take_sol(Eq(subscript, dummy_sym), index).subs(dummy_sym, index)
+            subsumed_eq = kv_eq.subs(index, sol)
+            subsumed_rec_specs.update({subsumed_eq: make_recurrence_spec(
+                recurrence_eq=subsumed_eq, index=index, indexed=indexed, terms_cache={})})
+        else: 
+            subsumed_rec_specs.update({kv_eq: make_recurrence_spec(
+                recurrence_eq=kv_eq, index=index, indexed=indexed, terms_cache={})})
+
+    return subsumed_rec_specs.values()
 
 def latex_array_env(*args, **kwd):
     

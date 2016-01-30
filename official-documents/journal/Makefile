@@ -1,3 +1,0 @@
-
-all:
-	lualatex Scheda.tex

@@ -1,3 +1,0 @@
-
-all:
-	lualatex fq.tex 

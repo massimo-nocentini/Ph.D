@@ -299,7 +299,7 @@ def subsume_cache(recurrence_spec):#, new_index_symbol=None):
     for k,v in terms_cache.items():
         kv_eq = Eq(k, v)
         matched_key = take_apart_matched(k, indexed)
-        if matched_key:
+        if matched_key and index in matched_key['subscript'].free_symbols:
             subscript, dummy_sym = matched_key['subscript'], Dummy()
             sol = take_sol(Eq(subscript, dummy_sym), index).subs(dummy_sym, index)
             subsumed_eq = kv_eq.subs(index, sol)

@@ -21,7 +21,7 @@ present a basic introduction to [SymPy] for students.
 
 [Verri]:http://www.dsi.unifi.it/~cecilia/
 [Merlini]:http://local.disia.unifi.it/merlini/
-[here]:http://nbviewer.jupyter.org/github/massimo-nocentini/PhD/blob/master/courses/paa/sympy-notebook/an-introduction-to-sympy.ipynb?flush_cache=true
+[here]:http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/master/paa-course/an-introduction-to-sympy.ipynb?flush_cache=true
 [SymPy]:http://www.sympy.org/en/index.html
-[recurrences-unfolding]:http://nbviewer.jupyter.org/github/massimo-nocentini/PhD/blob/master/courses/paa/sympy-notebook/recurrences-unfolding.ipynb?flush_cache=true
-[companion]:http://nbviewer.jupyter.org/github/massimo-nocentini/PhD/blob/master/courses/paa/sympy-notebook/binomial-transform-applied-to-fibonacci-numbers.ipynb?flush_cache=true
+[recurrences-unfolding]:http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/master/sympy-notebook/recurrences-unfolding.ipynb?flush_cache=true
+[companion]:http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/master/sympy-notebook/binomial-transform-applied-to-fibonacci-numbers.ipynb?flush_cache=true

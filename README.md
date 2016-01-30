@@ -1,23 +1,26 @@
 
-# An introduction to SymPy
+# Recurrences unfolding
 
-This folder holds material to support a lecture within the course
+This project aims to implement a prototype to unfold recurrence
+relations *symbolically*. Our definitions are built on top of *SymPy*
+and target Python **3.5.1**.
+
+We describe prototype features in a [notebook][recurrences-unfolding], 
+where some unfolded recurrences are shown. We split the content 
+about the underlying *Binomial transform*, which arises
+in the characterization of Fibonacci numbers with odd subscripts, 
+in a [companion document][companion].
+
+
+## A basic introduction to SymPy
+
+Moreover, we provide a Jupyter notebook to support a lecture within the course
 *Progettazione e Analisi degli Algoritmi* (PAA for short) taught
-by professors [Donatella] and [Cecilia] at the University of Florence.
+by professors [Merlini] and [Verri] at the University of Florence. The [notebook][here]
+present a basic introduction to [SymPy] for students.
 
-In this lecture we'll see an introduction to [SymPy], using Jupyter Notebooks
-and looking under the hood at source codes ;)
-
-The notebook can be seen [here].
-
-Moreover, we have implemented some functions to unfold recurrences
-depending on a *single* variable. The notebook with some unfolded
-recurrences can be seen [here][recurrences-unfolding], with a [companion
-document][companion] about the underlying *Binomial transform* arising
-in the characterization of Fibonacci numbers with odd subscripts.
-
-[Cecilia]:http://www.dsi.unifi.it/~cecilia/
-[Donatella]:http://local.disia.unifi.it/merlini/
+[Verri]:http://www.dsi.unifi.it/~cecilia/
+[Merlini]:http://local.disia.unifi.it/merlini/
 [here]:http://nbviewer.jupyter.org/github/massimo-nocentini/PhD/blob/master/courses/paa/sympy-notebook/an-introduction-to-sympy.ipynb?flush_cache=true
 [SymPy]:http://www.sympy.org/en/index.html
 [recurrences-unfolding]:http://nbviewer.jupyter.org/github/massimo-nocentini/PhD/blob/master/courses/paa/sympy-notebook/recurrences-unfolding.ipynb?flush_cache=true

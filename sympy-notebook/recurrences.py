@@ -191,7 +191,7 @@ def base_instantiation(unfolded_recurrence_spec, base_index=0):
         valid_equations = filter(lambda x: False if x is None else True, 
                                  map(subscript_equation_maker, rhs_summands))
         
-        solutions = map(lambda eq: solve(eq, index)[0], valid_equations)
+        solutions = map(lambda eq: take_sol(eq, index), valid_equations)
         
         satisfying_index = max(solutions)
 
@@ -243,7 +243,7 @@ def times_higher_order_operator(recurrence_spec,
     last_terms_cache = recurrence_spec['terms_cache'].copy()
     recurrence_spec['terms_cache'] = initial_terms_cache
 
-    return mapped if not include_last_terms_cache else (mapped, last_terms_cache)
+    return (mapped, last_terms_cache) if include_last_terms_cache else mapped 
 
 
 def repeated_instantiating(base_instantiated_rec_spec):
@@ -284,15 +284,13 @@ def take_sol(*args, sol_index=0):
     sols = solve(*args)
     return sols[sol_index]
 
-def subsume_cache(recurrence_spec):#, new_index_symbol=None):
+def subsume_cache(recurrence_spec):
 
     recurrence_eq, index, indexed, terms_cache = (
         recurrence_spec['recurrence_eq'], 
         recurrence_spec['index'], 
         recurrence_spec['indexed'], 
         recurrence_spec['terms_cache'])
-
-    #if new_index_symbol is None: new_index_symbol = index
 
     subsumed_rec_specs = {}
 
@@ -310,6 +308,52 @@ def subsume_cache(recurrence_spec):#, new_index_symbol=None):
                 recurrence_eq=kv_eq, index=index, indexed=indexed, terms_cache={})})
 
     return subsumed_rec_specs.values()
+
+def to_matrix_notation(eqs, indexed, order):
+
+    lhs_vector = []
+    comb_dicts = [] 
+    
+    def worker(eq):
+
+        lhs_vector.append(eq.lhs)
+
+        comb_dict = {}
+        for summand in flatten(eq.rhs.args, cls=Add):
+            matched = take_apart_matched(summand, indexed)
+            if matched: comb_dict.update( { matched['subscript']: matched['coeff'] } )
+            #else: print(summand)
+
+        comb_dicts.append(comb_dict)
+
+    for eq in eqs: worker(eq)
+
+    rows = len(comb_dicts)
+    comb_vector = Matrix([indexed[o] for o in order])
+    cols = len(comb_vector[:,0])
+    comb_matrix = zeros(rows, cols)
+    
+    for r in range(rows):
+        for c in range(cols):
+            comb_dict, k = comb_dicts[r], order[c]
+            if k in comb_dict: comb_matrix[r, c] = comb_dict[k]
+
+    #return Eq(Mul(comb_matrix, comb_vector, evaluate=False), Matrix(lhs_vector), evaluate=False)
+    return comb_matrix, comb_vector, Matrix(lhs_vector)
+
+def invert_dict(a_dict, check_bijection=True):
+
+    inverted = {}
+    
+    if check_bijection:
+        for k,v in a_dict.items():
+            if v in inverted: raise Exception("v is mapped at least by k and inverted[v], not a bijection")
+            inverted.update({v:k})
+    else:
+        inverted.update({v:k for k,v in a_dict.items()})
+
+    return inverted
+
 
 def latex_array_env(*args, **kwd):
     

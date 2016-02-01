@@ -319,10 +319,14 @@ def to_matrix_notation(eqs, indexed, order):
         lhs_vector.append(eq.lhs)
 
         comb_dict = {}
-        for summand in flatten(eq.rhs.args, cls=Add):
-            matched = take_apart_matched(summand, indexed)
+        if isinstance(eq.rhs, Add):
+            for summand in flatten(eq.rhs.args, cls=Add):
+                matched = take_apart_matched(summand, indexed)
+                if matched: comb_dict.update( { matched['subscript']: matched['coeff'] } )
+                #else: print(summand)
+        else:
+            matched = take_apart_matched(eq.rhs, indexed)
             if matched: comb_dict.update( { matched['subscript']: matched['coeff'] } )
-            #else: print(summand)
 
         comb_dicts.append(comb_dict)
 

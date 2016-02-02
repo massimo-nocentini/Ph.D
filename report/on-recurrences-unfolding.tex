@@ -773,9 +773,10 @@
     Infinite matrix is known $A104712$\footnote{\url{http://oeis.org/A104712}}
     and can be expressed as a Riordan array:
     \begin{displaymath}
-        \mathcal{R}\left(\frac{1}{(1-t)^3}, \frac{1}{1-t}\right)
+        \mathcal{R}\left(\frac{1}{(1-t)^3}, \frac{t}{1-t}\right)
     \end{displaymath}
-    so, we can state the following result.
+
+    Finally, we can state the following result.
     \begin{thm}
         \begin{displaymath}
             f_{2n+1} - 1 = \sum_{k=1}^{n}{{{n+1}\choose{k+1}}f_{k}}
@@ -804,7 +805,8 @@
             f_{18} =9 f_{-1} + 37 f_{0} + 120 f_{1} + 210 f_{2} + 252 f_{3} + 210 f_{4} + 120 f_{5} + 45 f_{6} + 10 f_{7} + f_{8}
             \end{array}
     \end{displaymath}
-    moving $c f_{-1}$ terms, for some $c\in\mathbb{N}$, on left hand sides again yields:
+    moving every term matching $c f_{-1}$, for some $c\in\mathbb{N}$, from right hand sides to
+    left hand sides again, yields:
     \begin{displaymath}
         \begin{array}{c}
             f_{2} - f_{-1}= f_{0}\\
@@ -855,17 +857,21 @@
         \begin{array}{c}
             f_{2} - 1=0\\
             f_{4} - 2=f_{1}\\
-            f_{6} - 3=f_{1} + f_{2}\\
-            f_{8} - 4=f_{1} + 5 f_{2} + f_{3}\\
-            f_{10} - 5=f_{1} + 15 f_{2} + 6 f_{3} + f_{4}\\
-            f_{12} - 6=f_{1} + 35 f_{2} + 21 f_{3} + 7 f_{4} + f_{5}\\
-            f_{14} - 7=f_{1} + 70 f_{2} + 56 f_{3} + 28 f_{4} + 8 f_{5} + f_{6}\\
-            f_{16} - 8=f_{1} + 126 f_{2} + 126 f_{3} + 84 f_{4} + 36 f_{5} + 9 f_{6} + f_{7}\\
+            f_{6} - 3=4f_{1} + f_{2}\\
+            f_{8} - 4=10f_{1} + 5 f_{2} + f_{3}\\
+            f_{10} - 5=20f_{1} + 15 f_{2} + 6 f_{3} + f_{4}\\
+            f_{12} - 6=35f_{1} + 35 f_{2} + 21 f_{3} + 7 f_{4} + f_{5}\\
+            f_{14} - 7=56f_{1} + 70 f_{2} + 56 f_{3} + 28 f_{4} + 8 f_{5} + f_{6}\\
+            f_{16} - 8=84f_{1} + 126 f_{2} + 126 f_{3} + 84 f_{4} + 36 f_{5} + 9 f_{6} + f_{7}\\
             f_{18} - 9 = 120 f_{1} + 210 f_{2} + 252 f_{3} + 210 f_{4} + 120 f_{5} + 45 f_{6} + 10 f_{7} + f_{8}
             \end{array}
     \end{displaymath}
     coefficient matrix is known as $A104713$\footnote{\url{http://oeis.org/A104713}},
-    which allows us to derive the following result.
+    which is a Riordan array:
+    \begin{displaymath}
+        \mathcal{R}\left(\frac{1}{(1-t)^4}, \frac{t}{1-t}\right)
+    \end{displaymath}
+    finally, we can derive the following result.
 
     \begin{thm}
         \begin{displaymath}

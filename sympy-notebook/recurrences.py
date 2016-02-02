@@ -358,6 +358,13 @@ def invert_dict(a_dict, check_bijection=True):
 
     return inverted
 
+def fix_combination(eqs, adjust, fix):
+    
+    def w(eq): 
+        adjust_term = adjust(eq.rhs) 
+        return Eq(fix(adjust_term, eq.lhs), fix(adjust_term, eq.rhs), evaluate=False)
+
+    return map(w, eqs)
 
 def latex_array_env(*args, **kwd):
     

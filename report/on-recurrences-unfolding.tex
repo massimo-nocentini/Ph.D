@@ -7,7 +7,7 @@
 \usepackage{url}
 \usepackage{graphicx}
 \usepackage{float}
-\usepackage{amsthm, latexsym}
+\usepackage{amsmath, amsthm, latexsym}
 \usepackage{amssymb}
 \usepackage{bm}
 \usepackage{caption}
@@ -17,6 +17,7 @@
 \usepackage[T1]{fontenc} % T2A for cyrillics
 \usepackage[utf8]{inputenc}				
 \usepackage{rotating}				
+\usepackage{changepage}				
 
 \newcommand{\R}{{\mathbb R}}
 \newcommand{\Q}{{\mathbb Q}}
@@ -50,14 +51,6 @@
 
 
 \begin{document}
-
-    %\title{\rmfamily\normalfont\spacedallcaps{On recurrences unfolding}}
-    %\author{\spacedlowsmallcaps{Massimo Nocentini}}
-    %\date{\today} 
-
-
-
-%    \maketitle
     
     \begin{titlepage}
         \begin{center}
@@ -129,13 +122,6 @@
     \begin{displaymath}
         \left \{ \frac{1}{n} c_{n - 1} : \frac{c_{n - 2}}{n - 1} + \frac{2}{n}, \quad \frac{c_{n - 4}}{n - 3} : \frac{2}{n - 3} + \frac{c_{n - 5}}{n - 4}, \quad \frac{c_{n - 3}}{n - 2} : \frac{2}{n - 2} + \frac{c_{n - 4}}{n - 3}, \quad \frac{c_{n - 2}}{n - 1} : \frac{2}{n - 1} + \frac{c_{n - 3}}{n - 2}\right \}
     \end{displaymath}
-
-
-    \subsection{A Subsection}
-    \lipsum[1]
-
-    \section{A Section}
-    \lipsum[1]
     
     \chapter{On Fibonacci numbers}
     
@@ -792,7 +778,7 @@
     as a symbol, to both members in each equation within 
     \autoref{triangle:fib:first:order:odds}, accumulating them
     and, finally, applying the above identity on right hand sides, we get:
-    \begin{displaymath}
+    \begin{equation}
         \begin{array}{c}
             f_{2} = f_{-1} + f_{0}\\
             f_{4} =2 f_{-1} + 2 f_{0} + f_{1}\\
@@ -803,8 +789,9 @@
             f_{14} =7 f_{-1} + 22 f_{0} + 56 f_{1} + 70 f_{2} + 56 f_{3} + 28 f_{4} + 8 f_{5} + f_{6}\\
             f_{16} =8 f_{-1} + 29 f_{0} + 84 f_{1} + 126 f_{2} + 126 f_{3} + 84 f_{4} + 36 f_{5} + 9 f_{6} + f_{7}\\
             f_{18} =9 f_{-1} + 37 f_{0} + 120 f_{1} + 210 f_{2} + 252 f_{3} + 210 f_{4} + 120 f_{5} + 45 f_{6} + 10 f_{7} + f_{8}
-            \end{array}
-    \end{displaymath}
+        \end{array}
+        \label{eq:tringle:even:subscripted:fibs:sym}
+    \end{equation}
     moving every term matching $c f_{-1}$, for some $c\in\mathbb{N}$, from right hand sides to
     left hand sides again, yields:
     \begin{displaymath}
@@ -879,8 +866,105 @@
         \end{displaymath}
     \end{thm}
 
+    Moreover, evaluating right hand sides of equations in 
+    \autoref{eq:tringle:even:subscripted:fibs:sym}, preveenting terms
+    containing $f_{-1}$ to be substituted, leaving them symbols, we get
+    the following:
+    \begin{displaymath}
+        \begin{array}{c}
+            f_{2} = f_{-1}\\
+            f_{4} = 2 f_{-1} + 1\\
+            f_{6} = 3 f_{-1} + 5\\
+            f_{8} = 4 f_{-1} + 17\\
+            f_{10} = 5 f_{-1} + 50\\
+            f_{12} = 6 f_{-1} + 138\\
+            f_{14} = 7 f_{-1} + 370\\
+            f_{16} = 8 f_{-1} + 979\\
+            f_{18} = 9 f_{-1} + 2575
+        \end{array}
+    \end{displaymath}
+    where sequence $(0,1,5,17,50,138,370,979,2575,\ldots)$ is known as 
+    $A054452$\footnote{\url{http://oeis.org/A054452}}. It is very interesting
+    to note a link pointed out in the encyclopedia, which shows that
+    such sequence is the second column of triangle $A054450$, to be 
+    correct $A054450(2n-1,2)$\footnote{\url{http://oeis.org/A054450}}.
+    
+    From the encyclopedia again, its generating function $G(t)$ is defined as:
+    \begin{displaymath}
+        G(t) = \frac{t^2}{(1-t)^2 (1-3t+t^2)}
+    \end{displaymath}
+    therefore, summing the generating function of natural numbers, namely
+    $\frac{t}{(1-t)^2}$, we can derive the generating function of even
+    subscripted Fibonacci numbers, which is:
+    \begin{displaymath}
+        \mathcal{G}\lbrace f_{2n}\rbrace_{n\in\mathbb{N}} = \frac{t}{1 -3t +t^2}
+    \end{displaymath}
+
+        
+
     \section{Second Order unfolding}
-    \lipsum[1]
+
+    It is possible to use a different recurrence relation to do 
+    unfolding steps, a natural choice could be to use at each
+    unfolding step the recently computed one: we call this scheme
+    \emph{second order} unfolding. Applied to Fibonacci recurrence
+    relation yield the following equations, each one corresponding
+    to $0,1,2,3$ unfolding steps:
+    \begin{displaymath}
+        \hspace{-3.5cm}
+        \begin{array}{c}
+             f_{n} = f_{n - 2} + f_{n - 1}\\
+             f_{n} = f_{n - 4} + 2 f_{n - 3} + f_{n - 2}\\
+             f_{n} = f_{n - 8} + 4 f_{n - 7} + 5 f_{n - 6} + 2 f_{n - 5} + f_{n - 4} + f_{n - 3}\\
+             f_{n} = f_{n - 16} + 8 f_{n - 15} + 26 f_{n - 14} + 44 f_{n - 13} + 42 f_{n - 12} + 25 f_{n - 11} + 13 f_{n - 10} + 7 f_{n - 9} + 3 f_{n - 8} + 3 f_{n - 7} + 3 f_{n - 6} + f_{n - 5}\\
+    %        f_{n} = f_{n - 32} + 16 f_{n - 31} + 116 f_{n - 30} + 504 f_{n - 29} + 1464 f_{n - 28} + 3010 f_{n - 27} + 4546 f_{n - 26} + 5218 f_{n - 25} + 4755 f_{n - 24} + 3635 f_{n - 23} + 2438 f_{n - 22} + 1473 f_{n - 21} + 863 f_{n - 20} + 541 f_{n - 19} + 333 f_{n - 18} + 177 f_{n - 17} + 88 f_{n - 16} + 49 f_{n - 15} + 37 f_{n - 14} + 34 f_{n - 13} + 28 f_{n - 12} + 17 f_{n - 11} + 8 f_{n - 10} + 4 f_{n - 9} + f_{n - 8}
+        \end{array}
+    \end{displaymath}
+    previous equations shows other ways to combine Fibonacci numbers
+    to get other Fibonacci numbers, but combination matrix composed of
+    such coefficients hasn't a ``closed'' characterization 
+    (and it is computationally hard to compute).
+
+    \chapter{Code}
+
+    \section{recurrences.py}
+    \begin{adjustwidth}{-4cm}{0cm}
+        \inputminted{python}{../sympy-notebook/recurrences.py}
+    \end{adjustwidth}
+
+    \section{sums.py}
+
+    \begin{adjustwidth}{-4cm}{0cm}
+        \inputminted{python}{../sympy-notebook/sums.py}
+    \end{adjustwidth}
+    
+    \section{Repository}
+
+    This project is under version control as a \emph{Git} repository
+    \footnote{\url{https://github.com/massimo-nocentini/recurrences-unfolding}}
+    and sandbox Jupyter notebooks are available on line about recurrence
+    unfoldings\footnote{\url{http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/master/sympy-notebook/recurrences-unfolding.ipynb?flush_cache=true}} 
+    and binomial transforms\footnote{\url{http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/master/sympy-notebook/binomial-transform-applied-to-fibonacci-numbers.ipynb?flush_cache=true}}.
+
+
+    \section{Licence}
+
+    All the content (this document, Jupyter notebooks, Python sources) 
+    contained in the repository is distributed under:\\
+    \textbf{
+    This work is licensed under the Creative Commons
+    Attribution-NonCommercial-ShareAlike 3.0 Unported License. To view a copy of 
+    this license, visit
+    \\\url{http://creativecommons.org/licenses/by-nc-sa/3.0/}  or send a
+    letter to Creative Commons, 444 Castro Street, Suite 900, Mountain View, 
+    California, 94041, USA.} 
+
+    \begin{center}
+    \includegraphics{gfx/cc-icons-eps/by}
+    \includegraphics{gfx/cc-icons-eps/cc}
+    \includegraphics{gfx/cc-icons-eps/nc}
+    \includegraphics{gfx/cc-icons-eps/sa}
+    \end{center}
 
     \iffalse
     % bib stuff

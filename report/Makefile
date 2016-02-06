@@ -21,3 +21,5 @@ clear:
 	rm $(DOCUMENT_NAME).pdf
 	rm $(DOCUMENT_NAME).toc
 
+git-add-document-root-file:
+	git add -f $(DOCUMENT_NAME_TEX)

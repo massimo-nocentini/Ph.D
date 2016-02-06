@@ -1,11 +1,23 @@
 
+TEX_COMPILER = lualatex
+
+DOCUMENT_NAME = on-recurrences-unfolding
+DOCUMENT_NAME_TEX = $(DOCUMENT_NAME).tex
+
 pdf:
-	lualatex --shell-escape on-recurrences-unfolding.tex
+	$(TEX_COMPILER) --shell-escape $(DOCUMENT_NAME_TEX)
 
 bibtex-and-references:
-	pdflatex --shell-escape on-recurrences-unfolding.tex
-	bibtex on-recurrences-unfolding
-	pdflatex --shell-escape on-recurrences-unfolding.tex
-	pdflatex --shell-escape on-recurrences-unfolding.tex
+	$(TEX_COMPILER) --shell-escape $(DOCUMENT_NAME_TEX)
+	bibtex $(DOCUMENT_NAME)
+	$(TEX_COMPILER) --shell-escape $(DOCUMENT_NAME_TEX)
+	$(TEX_COMPILER) --shell-escape $(DOCUMENT_NAME_TEX)
 
-complete: pascal-explanations bibtex-and-references
+clear:
+	rm -rf _minted-$(DOCUMENT_NAME)/
+	rm $(DOCUMENT_NAME).aux
+	rm $(DOCUMENT_NAME).log
+	rm $(DOCUMENT_NAME).out
+	rm $(DOCUMENT_NAME).pdf
+	rm $(DOCUMENT_NAME).toc
+

@@ -1,0 +1,31 @@
+
+\chapter{Quicksort recurrences}
+
+\section{On the average number of checks}
+
+Let $c_{n}$ be the number of checks occuring on the computation
+of Quicksort algorithm on a vector of length $n$. After some manipulation
+starting from a general relation over $c_{n}$, which is derived from
+Quicksort algorithm implementation directly, the following
+recurrence relation can be derived:
+\begin{equation}
+    \label{eq:quicksort-checks-recurrence}
+    \frac{c_{n}}{n + 1} = \frac{2}{n + 1} + \frac{1}{n} c_{n - 1}
+\end{equation}
+one unfolding step allows us to rewrite term $\frac{1}{n} c_{n - 1}$, 
+rewriting the starting relation as:
+\begin{displaymath}
+    \frac{c_{n}}{n + 1} = \frac{c_{n - 2}}{n - 1} + \frac{2}{n} + \frac{2}{n + 1}
+\end{displaymath}
+Doing $3$ more unfolding steps from the above recurrence yield the
+new recurrence:
+\begin{displaymath}
+    \frac{c_{n}}{n + 1} = \frac{2}{n - 3} + \frac{c_{n - 5}}{n - 4} + \frac{2}{n + 1} + \frac{2}{n} + \frac{2}{n - 1} + \frac{2}{n - 2}
+\end{displaymath}
+To reach previous recurrence, the following subterms have been unfolded,
+according \autoref{eq:quicksort-checks-recurrence}:
+\begin{displaymath}
+    \left \{ \frac{1}{n} c_{n - 1} : \frac{c_{n - 2}}{n - 1} + \frac{2}{n}, \quad \frac{c_{n - 4}}{n - 3} : \frac{2}{n - 3} + \frac{c_{n - 5}}{n - 4}, \quad \frac{c_{n - 3}}{n - 2} : \frac{2}{n - 2} + \frac{c_{n - 4}}{n - 3}, \quad \frac{c_{n - 2}}{n - 1} : \frac{2}{n - 1} + \frac{c_{n - 3}}{n - 2}\right \}
+\end{displaymath}
+
+

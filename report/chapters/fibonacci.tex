@@ -1,0 +1,804 @@
+
+\chapter{On Fibonacci numbers}
+
+\section{First Order unfolding}
+
+We use the following recurrence to symbolically characterize Fibonacci numbers: 
+\begin{equation}
+    \label{eq:fib:first:order:unfolding}
+    f_{n + 2} = f_{n} + f_{n + 1}
+\end{equation}
+In this section we are interested in applying \emph{first order} unfolding
+to such relation, namely unfold both term $f_{n}$ and $t_{n+1}$ according
+\autoref{eq:fib:first:order:unfolding}. Doing one unfolding step yield:
+\begin{displaymath} 
+    f_{n + 2} = f_{n - 2} + 2 f_{n - 1} + f_{n}
+\end{displaymath}
+Doing one more unfolding step yield:
+\begin{displaymath} 
+    f_{n + 2} = f_{n - 4} + 3 f_{n - 3} + 3 f_{n - 2} + f_{n - 1}
+\end{displaymath}
+let us continue to unfold up to $9$ times, collecting relations in 
+\autoref{triangle:fib:first:order} and in \autoref{matrix:notation:triangle:fib:first:order}
+using matrix notation. These tables allow us to derive the 
+following generalization, which we state as a theorem.
+
+\begin{thm} Let $f_{n}$ denote the $n$-th Fibonacci number.
+    \begin{displaymath} 
+        f_{n} = \sum_{k=0}^{m} {{{m}\choose{k}} f_{n - 2 m + k}}
+    \end{displaymath} 
+\end{thm}
+
+
+\begin{sidewaystable}
+
+    \begin{eqnarray}
+        & f_{n + 2} = f_{n} + f_{n + 1} \\
+        & f_{n + 2} = f_{n} + f_{n - 2} + 2 f_{n - 1}\\
+        & f_{n + 2} = f_{n - 4} + 3 f_{n - 3} + 3 f_{n - 2} + f_{n - 1}\\
+        & f_{n + 2} = f_{n - 6} + 4 f_{n - 5} + 6 f_{n - 4} + 4 f_{n - 3} + f_{n - 2}\\
+        & f_{n + 2} = f_{n - 8} + 5 f_{n - 7} + 10 f_{n - 6} + 10 f_{n - 5} + 5 f_{n - 4} + f_{n - 3}\\
+        & f_{n + 2} = f_{n - 10} + 6 f_{n - 9} + 15 f_{n - 8} + 20 f_{n - 7} + 15 f_{n - 6} + 6 f_{n - 5} + f_{n - 4}\\
+        & f_{n + 2} = f_{n - 12} + 7 f_{n - 11} + 21 f_{n - 10} + 35 f_{n - 9} + 35 f_{n - 8} + 21 f_{n - 7} + 7 f_{n - 6} + f_{n - 5}\\
+        & f_{n + 2} = f_{n - 14} + 8 f_{n - 13} + 28 f_{n - 12} + 56 f_{n - 11} + 70 f_{n - 10} + 56 f_{n - 9} + 28 f_{n - 8} + 8 f_{n - 7} + f_{n - 6}\\
+        & f_{n + 2} = f_{n - 16} + 9 f_{n - 15} + 36 f_{n - 14} + 84 f_{n - 13} + 126 f_{n - 12} + 126 f_{n - 11} + 84 f_{n - 10} + 36 f_{n - 9} + 9 f_{n - 8} + f_{n - 7}\\
+        & f_{n + 2} = f_{n - 18} + 10 f_{n - 17} + 45 f_{n - 16} + 120 f_{n - 15} + 210 f_{n - 14} + 252 f_{n - 13} + 210 f_{n - 12} + 120 f_{n - 11} + 45 f_{n - 10} + 10 f_{n - 9} + f_{n - 8}
+        \end{eqnarray}
+
+    \caption{Relations produced by $0$ up to $9$ \emph{first order} unfolding steps}
+    \label{triangle:fib:first:order}
+\end{sidewaystable}
+
+\begin{sidewaystable}
+
+    \begin{displaymath}
+        \left[\begin{array}{ccccccccccccccccccccc}
+            1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            0 & 0 & 1 & 2 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            0 & 0 & 0 & 1 & 3 & 3 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            0 & 0 & 0 & 0 & 1 & 4 & 6 & 4 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            0 & 0 & 0 & 0 & 0 & 1 & 5 & 10 & 10 & 5 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            0 & 0 & 0 & 0 & 0 & 0 & 1 & 6 & 15 & 20 & 15 & 6 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 7 & 21 & 35 & 35 & 21 & 7 & 1 & 0 & 0 & 0 & 0 & 0 & 0\\
+            0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 8 & 28 & 56 & 70 & 56 & 28 & 8 & 1 & 0 & 0 & 0 & 0\\
+            0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 9 & 36 & 84 & 126 & 126 & 84 & 36 & 9 & 1 & 0 & 0\\
+            0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 10 & 45 & 120 & 210 & 252 & 210 & 120 & 45 & 10 & 1
+            \end{array}\right]  \quad % matrix * vector
+            \left[
+                \begin{array}{c}
+                    f_{n + 2}\\
+                    f_{n + 1}\\
+                    f_{n}\\
+                    f_{n - 1}\\
+                    f_{n - 2}\\
+                    f_{n - 3}\\
+                    f_{n - 4}\\
+                    f_{n - 5}\\
+                    f_{n - 6}\\
+                    f_{n - 7}\\
+                    f_{n - 8}\\
+                    f_{n - 9}\\
+                    f_{n - 10}\\
+                    f_{n - 11}\\
+                    f_{n - 12}\\
+                    f_{n - 13}\\
+                    f_{n - 14}\\
+                    f_{n - 15}\\
+                    f_{n - 16}\\
+                    f_{n - 17}\\
+                    f_{n - 18}
+                    \end{array}\right] \quad = \quad 
+            \left[
+                \begin{array}{c}
+                    f_{n + 2}\\
+                    f_{n + 2}\\
+                    f_{n + 2}\\
+                    f_{n + 2}\\
+                    f_{n + 2}\\
+                    f_{n + 2}\\
+                    f_{n + 2}\\
+                    f_{n + 2}\\
+                    f_{n + 2}\\
+                    f_{n + 2}\\
+                    f_{n + 2}
+                    \end{array}\right]
+        \end{displaymath}
+
+    \caption{Matrix notation of \autoref{triangle:fib:first:order}}
+    \label{matrix:notation:triangle:fib:first:order}
+\end{sidewaystable}
+
+\subsection{First accumulation}
+
+We provide another generalization produced by \emph{accumulating}
+relations in \autoref{triangle:fib:first:order}: in 
+\autoref{triangle:fib:first:order:first:accumulation} result of a first
+accumulation scan are shown. Leftmost matrix in 
+\autoref{matrix:notation:triangle:fib:first:order:first:accumulation}
+is known as A$027926$\footnote{\url{http://oeis.org/A027926}} and, 
+letting $d_{nk}$ the generic element in row $r$ and column $k$, is
+characterized as follows:
+\begin{equation}
+    \label{eq:triangle:rec:rule:fib}
+    d_{00} = 1 \quad d_{n, 2n} = 1 \quad d_{n+1,k+1} = d_{n, k-1} + d_{n, k}  
+\end{equation}
+therefore we can derive another identity, giving it as a theorem.
+
+\begin{thm}
+    \begin{displaymath}
+        \left(k + 1\right) f_{n} = \sum_{i=0}^{2 k}  d_{k,2 k - i} f_{n - i}
+    \end{displaymath}
+\end{thm}
+
+
+\begin{sidewaystable}
+    \scriptsize
+    \begin{eqnarray}
+         & f_{n + 2} = f_{n + 2}\\
+         & 2 f_{n + 2} = f_{n} + f_{n + 1} + f_{n + 2}\\
+         & 3 f_{n + 2} = 2 f_{n} + f_{n - 2} + 2 f_{n - 1} + f_{n + 1} + f_{n + 2}\\
+         & 4 f_{n + 2} = 2 f_{n} + f_{n - 4} + 3 f_{n - 3} + 4 f_{n - 2} + 3 f_{n - 1} + f_{n + 1} + f_{n + 2}\\
+         & 5 f_{n + 2} = 2 f_{n} + f_{n - 6} + 4 f_{n - 5} + 7 f_{n - 4} + 7 f_{n - 3} + 5 f_{n - 2} + 3 f_{n - 1} + f_{n + 1} + f_{n + 2}\\
+         & 6 f_{n + 2} = 2 f_{n} + f_{n - 8} + 5 f_{n - 7} + 11 f_{n - 6} + 14 f_{n - 5} + 12 f_{n - 4} + 8 f_{n - 3} + 5 f_{n - 2} + 3 f_{n - 1} + f_{n + 1} + f_{n + 2}\\
+         & 7 f_{n + 2} = 2 f_{n} + f_{n - 10} + 6 f_{n - 9} + 16 f_{n - 8} + 25 f_{n - 7} + 26 f_{n - 6} + 20 f_{n - 5} + 13 f_{n - 4} + 8 f_{n - 3} + 5 f_{n - 2} + 3 f_{n - 1} + f_{n + 1} + f_{n + 2}\\
+         & 8 f_{n + 2} = 2 f_{n} + f_{n - 12} + 7 f_{n - 11} + 22 f_{n - 10} + 41 f_{n - 9} + 51 f_{n - 8} + 46 f_{n - 7} + 33 f_{n - 6} + 21 f_{n - 5} + 13 f_{n - 4} + 8 f_{n - 3} + 5 f_{n - 2} + 3 f_{n - 1} + f_{n + 1} + f_{n + 2}\\
+         & 9 f_{n + 2} = 2 f_{n} + f_{n - 14} + 8 f_{n - 13} + 29 f_{n - 12} + 63 f_{n - 11} + 92 f_{n - 10} + 97 f_{n - 9} + 79 f_{n - 8} + 54 f_{n - 7} + 34 f_{n - 6} + 21 f_{n - 5} + 13 f_{n - 4} + 8 f_{n - 3} + 5 f_{n - 2} + 3 f_{n - 1} + f_{n + 1} + f_{n + 2}\\
+         & 10 f_{n + 2} = 2 f_{n} + f_{n - 16} + 9 f_{n - 15} + 37 f_{n - 14} + 92 f_{n - 13} + 155 f_{n - 12} + 189 f_{n - 11} + 176 f_{n - 10} + 133 f_{n - 9} + 88 f_{n - 8} + 55 f_{n - 7} + 34 f_{n - 6} + 21 f_{n - 5} + 13 f_{n - 4} + 8 f_{n - 3} + 5 f_{n - 2} + 3 f_{n - 1} + f_{n + 1} + f_{n + 2}\\
+         & 11 f_{n + 2} = 2 f_{n} + f_{n - 18} + 10 f_{n - 17} + 46 f_{n - 16} + 129 f_{n - 15} + 247 f_{n - 14} + 344 f_{n - 13} + 365 f_{n - 12} + 309 f_{n - 11} + 221 f_{n - 10} + 143 f_{n - 9} + 89 f_{n - 8} + 55 f_{n - 7} + 34 f_{n - 6} + 21 f_{n - 5} + 13 f_{n - 4} + 8 f_{n - 3} + 5 f_{n - 2} + 3 f_{n - 1} + f_{n + 1} + f_{n + 2}
+        \end{eqnarray}
+
+    \caption{Relations produced by accumulating equation in 
+        \autoref{triangle:fib:first:order}}
+    \label{triangle:fib:first:order:first:accumulation}
+\end{sidewaystable}
+
+\begin{sidewaystable}
+    \begin{displaymath}
+        \left[
+            \begin{array}{ccccccccccccccccccccc}
+            1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            1 & 1 & 2 & 2 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            1 & 1 & 2 & 3 & 4 & 3 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            1 & 1 & 2 & 3 & 5 & 7 & 7 & 4 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            1 & 1 & 2 & 3 & 5 & 8 & 12 & 14 & 11 & 5 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            1 & 1 & 2 & 3 & 5 & 8 & 13 & 20 & 26 & 25 & 16 & 6 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            1 & 1 & 2 & 3 & 5 & 8 & 13 & 21 & 33 & 46 & 51 & 41 & 22 & 7 & 1 & 0 & 0 & 0 & 0 & 0 & 0\\
+            1 & 1 & 2 & 3 & 5 & 8 & 13 & 21 & 34 & 54 & 79 & 97 & 92 & 63 & 29 & 8 & 1 & 0 & 0 & 0 & 0\\
+            1 & 1 & 2 & 3 & 5 & 8 & 13 & 21 & 34 & 55 & 88 & 133 & 176 & 189 & 155 & 92 & 37 & 9 & 1 & 0 & 0\\
+            1 & 1 & 2 & 3 & 5 & 8 & 13 & 21 & 34 & 55 & 89 & 143 & 221 & 309 & 365 & 344 & 247 & 129 & 46 & 10 & 1
+            \end{array}
+            \right]  \quad % matrix * vector
+            \left[
+                \begin{array}{c}
+                    f_{n + 2}\\
+                    f_{n + 1}\\
+                    f_{n}\\
+                    f_{n - 1}\\
+                    f_{n - 2}\\
+                    f_{n - 3}\\
+                    f_{n - 4}\\
+                    f_{n - 5}\\
+                    f_{n - 6}\\
+                    f_{n - 7}\\
+                    f_{n - 8}\\
+                    f_{n - 9}\\
+                    f_{n - 10}\\
+                    f_{n - 11}\\
+                    f_{n - 12}\\
+                    f_{n - 13}\\
+                    f_{n - 14}\\
+                    f_{n - 15}\\
+                    f_{n - 16}\\
+                    f_{n - 17}\\
+                    f_{n - 18}
+                    \end{array}\right] \quad = \quad 
+            \left[
+                \begin{array}{c}
+                    f_{n + 2}\\
+                    2 f_{n + 2}\\
+                    3 f_{n + 2}\\
+                    4 f_{n + 2}\\
+                    5 f_{n + 2}\\
+                    6 f_{n + 2}\\
+                    7 f_{n + 2}\\
+                    8 f_{n + 2}\\
+                    9 f_{n + 2}\\
+                    10 f_{n + 2}\\
+                    11 f_{n + 2}
+                    \end{array}\right]
+        \end{displaymath}
+
+    \caption{Matrix notation of \autoref{triangle:fib:first:order:first:accumulation}}
+    \label{matrix:notation:triangle:fib:first:order:first:accumulation}
+\end{sidewaystable}
+
+\begin{sidewaystable}
+    \begin{displaymath}
+        \left[
+            \begin{array}{ccccccccccccccccccccc}
+            f_{1} & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            f_{1} & f_{2} & f_{1} & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            f_{1} & f_{2} & f_{3} & f_{3} & f_{2} & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            f_{1} & f_{2} & f_{3} & f_{4} & 4 & f_{4} & f_{2} & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            f_{1} & f_{2} & f_{3} & f_{4} & f_{5} & 7 & 7 & 4 & f_{2} & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            f_{1} & f_{2} & f_{3} & f_{4} & f_{5} & f_{6} & 12 & 14 & 11 & f_{5} & f_{2} & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            f_{1} & f_{2} & f_{3} & f_{4} & f_{5} & f_{6} & f_{7} & 20 & 26 & 25 & 16 & 6 & f_{2} & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            f_{1} & f_{2} & f_{3} & f_{4} & f_{5} & f_{6} & f_{7} & f_{8} & 33 & 46 & 51 & 41 & 22 & 7 & f_{2} & 0 & 0 & 0 & 0 & 0 & 0\\
+            f_{1} & f_{2} & f_{3} & f_{4} & f_{5} & f_{6} & f_{7} & f_{8} & f_{9} & 54 & 79 & 97 & 92 & 63 & 29 & f_{6} & f_{2} & 0 & 0 & 0 & 0\\
+            f_{1} & f_{2} & f_{3} & f_{4} & f_{5} & f_{6} & f_{7} & f_{8} & f_{9} & f_{10} & 88 & 133 & 176 & 189 & 155 & 92 & 37 & 9 & f_{2} & 0 & 0\\
+            f_{1} & f_{2} & f_{3} & f_{4} & f_{5} & f_{6} & f_{7} & f_{8} & f_{9} & f_{10} & f_{11} & 143 & 221 & 309 & 365 & 344 & 247 & 129 & 46 & 10 & f_{2}
+            \end{array}
+            \right]  \quad % matrix * vector
+            \left[
+                \begin{array}{c}
+                    f_{n + 2}\\
+                    f_{n + 1}\\
+                    f_{n}\\
+                    f_{n - 1}\\
+                    f_{n - 2}\\
+                    f_{n - 3}\\
+                    f_{n - 4}\\
+                    f_{n - 5}\\
+                    f_{n - 6}\\
+                    f_{n - 7}\\
+                    f_{n - 8}\\
+                    f_{n - 9}\\
+                    f_{n - 10}\\
+                    f_{n - 11}\\
+                    f_{n - 12}\\
+                    f_{n - 13}\\
+                    f_{n - 14}\\
+                    f_{n - 15}\\
+                    f_{n - 16}\\
+                    f_{n - 17}\\
+                    f_{n - 18}
+                    \end{array}\right] \quad = \quad 
+            \left[
+                \begin{array}{c}
+                    f_{n + 2}\\
+                    2 f_{n + 2}\\
+                    3 f_{n + 2}\\
+                    4 f_{n + 2}\\
+                    5 f_{n + 2}\\
+                    6 f_{n + 2}\\
+                    7 f_{n + 2}\\
+                    8 f_{n + 2}\\
+                    9 f_{n + 2}\\
+                    10 f_{n + 2}\\
+                    11 f_{n + 2}
+                    \end{array}\right]
+        \end{displaymath}
+
+    \caption{Fibonacci substitution within matrix notation of 
+        \autoref{matrix:notation:triangle:fib:first:order:first:accumulation}}
+    \label{matrix:notation:triangle:fib:first:order:first:accumulation:substituting:fibs}
+\end{sidewaystable}
+
+\subsection{Second accumulation}
+
+In \autoref{triangle:fib:first:order:second:accumulation} we report
+a second accumulation and in \autoref{matrix:notation:triangle:fib:first:order:second:accumulation}
+its matrix notation.
+
+\begin{sidewaystable}
+    \scriptsize
+    \begin{eqnarray}
+        & f_{n + 2} = f_{n + 2}\\
+        & 3 f_{n + 2} = f_{n} + f_{n + 1} + 2f_{n + 2}\\
+        & 6 f_{n + 2} = 3 f_{n} + f_{n - 2} + 2 f_{n - 1} + 2 f_{n + 1} + 3f_{n + 2}\\
+        & 10 f_{n + 2} = 5 f_{n} + f_{n - 4} + 3 f_{n - 3} + 5 f_{n - 2} + 5 f_{n - 1} + 3 f_{n + 1} + 4f_{n + 2}\\
+        & 15 f_{n + 2} = 7 f_{n} + f_{n - 6} + 4 f_{n - 5} + 8 f_{n - 4} + 10 f_{n - 3} + 10 f_{n - 2} + 8 f_{n - 1} + 4 f_{n + 1} + 5f_{n + 2}\\
+        & 21 f_{n + 2} = 9 f_{n} + f_{n - 8} + 5 f_{n - 7} + 12 f_{n - 6} + 18 f_{n - 5} + 20 f_{n - 4} + 18 f_{n - 3} + 15 f_{n - 2} + 11 f_{n - 1} + 5 f_{n + 1} + 6f_{n + 2}\\
+        & 28 f_{n + 2} = 11 f_{n} + f_{n - 10} + 6 f_{n - 9} + 17 f_{n - 8} + 30 f_{n - 7} + 38 f_{n - 6} + 38 f_{n - 5} + 33 f_{n - 4} + 26 f_{n - 3} + 20 f_{n - 2} + 14 f_{n - 1} + 6 f_{n + 1} + 7f_{n + 2}\\
+        & 36 f_{n + 2} = 13 f_{n} + f_{n - 12} + 7 f_{n - 11} + 23 f_{n - 10} + 47 f_{n - 9} + 68 f_{n - 8} + 76 f_{n - 7} + 71 f_{n - 6} + 59 f_{n - 5} + 46 f_{n - 4} + 34 f_{n - 3} + 25 f_{n - 2} + 17 f_{n - 1} + 7 f_{n + 1} + 8f_{n + 2}\\
+        & 45 f_{n + 2} = 15 f_{n} + f_{n - 14} + 8 f_{n - 13} + 30 f_{n - 12} + 70 f_{n - 11} + 115 f_{n - 10} + 144 f_{n - 9} + 147 f_{n - 8} + 130 f_{n - 7} + 105 f_{n - 6} + 80 f_{n - 5} + 59 f_{n - 4} + 42 f_{n - 3} + 30 f_{n - 2} + 20 f_{n - 1} + 8 f_{n + 1} + 9f_{n + 2}\\
+        & 55 f_{n + 2} = 17 f_{n} + f_{n - 16} + 9 f_{n - 15} + 38 f_{n - 14} + 100 f_{n - 13} + 185 f_{n - 12} + 259 f_{n - 11} + 291 f_{n - 10} + 277 f_{n - 9} + 235 f_{n - 8} + 185 f_{n - 7} + 139 f_{n - 6} + 101 f_{n - 5} + 72 f_{n - 4} + 50 f_{n - 3} + 35 f_{n - 2} + 23 f_{n - 1} + 9 f_{n + 1} + 10f_{n + 2}\\
+        & 66 f_{n + 2} = 19 f_{n} + f_{n - 18} + 10 f_{n - 17} + 47 f_{n - 16} + 138 f_{n - 15} + 285 f_{n - 14} + 444 f_{n - 13} + 550 f_{n - 12} + 568 f_{n - 11} + 512 f_{n - 10} + 420 f_{n - 9} + 324 f_{n - 8} + 240 f_{n - 7} + 173 f_{n - 6} + 122 f_{n - 5} + 85 f_{n - 4} + 58 f_{n - 3} + 40 f_{n - 2} + 26 f_{n - 1} + 10 f_{n + 1} + 11f_{n + 2}
+        \end{eqnarray}
+
+    \caption{Relations produced by accumulating equation in 
+        \autoref{triangle:fib:first:order:first:accumulation}}
+    \label{triangle:fib:first:order:second:accumulation}
+\end{sidewaystable}
+
+\begin{sidewaystable}
+    \begin{displaymath}
+        \left[
+            \begin{array}{ccccccccccccccccccccc}
+                1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                2 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                3 & 2 & 3 & 2 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                4 & 3 & 5 & 5 & 5 & 3 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                5 & 4 & 7 & 8 & 10 & 10 & 8 & 4 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                6 & 5 & 9 & 11 & 15 & 18 & 20 & 18 & 12 & 5 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                7 & 6 & 11 & 14 & 20 & 26 & 33 & 38 & 38 & 30 & 17 & 6 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                8 & 7 & 13 & 17 & 25 & 34 & 46 & 59 & 71 & 76 & 68 & 47 & 23 & 7 & 1 & 0 & 0 & 0 & 0 & 0 & 0\\
+                9 & 8 & 15 & 20 & 30 & 42 & 59 & 80 & 105 & 130 & 147 & 144 & 115 & 70 & 30 & 8 & 1 & 0 & 0 & 0 & 0\\
+                10 & 9 & 17 & 23 & 35 & 50 & 72 & 101 & 139 & 185 & 235 & 277 & 291 & 259 & 185 & 100 & 38 & 9 & 1 & 0 & 0\\
+                11 & 10 & 19 & 26 & 40 & 58 & 85 & 122 & 173 & 240 & 324 & 420 & 512 & 568 & 550 & 444 & 285 & 138 & 47 & 10 & 1
+            \end{array}
+            \right]  \quad % matrix * vector
+            \left[
+                \begin{array}{c}
+                    f_{n + 2}\\
+                    f_{n + 1}\\
+                    f_{n}\\
+                    f_{n - 1}\\
+                    f_{n - 2}\\
+                    f_{n - 3}\\
+                    f_{n - 4}\\
+                    f_{n - 5}\\
+                    f_{n - 6}\\
+                    f_{n - 7}\\
+                    f_{n - 8}\\
+                    f_{n - 9}\\
+                    f_{n - 10}\\
+                    f_{n - 11}\\
+                    f_{n - 12}\\
+                    f_{n - 13}\\
+                    f_{n - 14}\\
+                    f_{n - 15}\\
+                    f_{n - 16}\\
+                    f_{n - 17}\\
+                    f_{n - 18}
+                    \end{array}\right] \quad = \quad 
+            \left[
+                \begin{array}{c}
+                    f_{n + 2}\\
+                    3 f_{n + 2}\\
+                    6 f_{n + 2}\\
+                    10 f_{n + 2}\\
+                    15 f_{n + 2}\\
+                    21 f_{n + 2}\\
+                    28 f_{n + 2}\\
+                    36 f_{n + 2}\\
+                    45 f_{n + 2}\\
+                    55 f_{n + 2}\\
+                    66 f_{n + 2}
+                    \end{array}\right]
+        \end{displaymath}
+
+    \caption{Matrix notation of \autoref{triangle:fib:first:order:second:accumulation}}
+    \label{matrix:notation:triangle:fib:first:order:second:accumulation}
+\end{sidewaystable}
+
+
+\subsection{Third accumulation}
+
+In \autoref{triangle:fib:first:order:third:accumulation} we report
+a third accumulation and in \autoref{matrix:notation:triangle:fib:first:order:third:accumulation}
+its matrix notation. Coefficients of $f_{n+2}$ within rightmost vector
+form a known sequence $A000292$\footnote{\url{http://oeis.org/A000292}}.
+
+\begin{sidewaystable}
+    \scriptsize
+    \begin{eqnarray}
+        & f_{n + 2} = f_{n + 2}\\
+        & 4 f_{n + 2} = f_{n} + f_{n + 1} + 3 f_{n + 2}\\
+        & 10 f_{n + 2} = 4 f_{n} + f_{n - 2} + 2 f_{n - 1} + 3 f_{n + 1} + 6 f_{n + 2}\\
+        & 20 f_{n + 2} = 9 f_{n} + f_{n - 4} + 3 f_{n - 3} + 6 f_{n - 2} + 7 f_{n - 1} + 6 f_{n + 1} + 10 f_{n + 2}\\
+        & 35 f_{n + 2} = 16 f_{n} + f_{n - 6} + 4 f_{n - 5} + 9 f_{n - 4} + 13 f_{n - 3} + 16 f_{n - 2} + 15 f_{n - 1} + 10 f_{n + 1} + 15 f_{n + 2}\\
+        & 56 f_{n + 2} = 25 f_{n} + f_{n - 8} + 5 f_{n - 7} + 13 f_{n - 6} + 22 f_{n - 5} + 29 f_{n - 4} + 31 f_{n - 3} + 31 f_{n - 2} + 26 f_{n - 1} + 15 f_{n + 1} + 21 f_{n + 2}\\
+        & 84 f_{n + 2} = 36 f_{n} + f_{n - 10} + 6 f_{n - 9} + 18 f_{n - 8} + 35 f_{n - 7} + 51 f_{n - 6} + 60 f_{n - 5} + 62 f_{n - 4} + 57 f_{n - 3} + 51 f_{n - 2} + 40 f_{n - 1} + 21 f_{n + 1} + 28 f_{n + 2}\\
+        & 120 f_{n + 2} = 49 f_{n} + f_{n - 12} + 7 f_{n - 11} + 24 f_{n - 10} + 53 f_{n - 9} + 86 f_{n - 8} + 111 f_{n - 7} + 122 f_{n - 6} + 119 f_{n - 5} + 108 f_{n - 4} + 91 f_{n - 3} + 76 f_{n - 2} + 57 f_{n - 1} + 28 f_{n + 1} + 36 f_{n + 2}\\
+        & 165 f_{n + 2} = 64 f_{n} + f_{n - 14} + 8 f_{n - 13} + 31 f_{n - 12} + 77 f_{n - 11} + 139 f_{n - 10} + 197 f_{n - 9} + 233 f_{n - 8} + 241 f_{n - 7} + 227 f_{n - 6} + 199 f_{n - 5} + 167 f_{n - 4} + 133 f_{n - 3} + 106 f_{n - 2} + 77 f_{n - 1} + 36 f_{n + 1} + 45 f_{n + 2}\\
+        & 220 f_{n + 2} = 81 f_{n} + f_{n - 16} + 9 f_{n - 15} + 39 f_{n - 14} + 108 f_{n - 13} + 216 f_{n - 12} + 336 f_{n - 11} + 430 f_{n - 10} + 474 f_{n - 9} + 468 f_{n - 8} + 426 f_{n - 7} + 366 f_{n - 6} + 300 f_{n - 5} + 239 f_{n - 4} + 183 f_{n - 3} + 141 f_{n - 2} + 100 f_{n - 1} + 45 f_{n + 1} + 55 f_{n + 2}\\
+        & 286 f_{n + 2} = 100 f_{n} + f_{n - 18} + 10 f_{n - 17} + 48 f_{n - 16} + 147 f_{n - 15} + 324 f_{n - 14} + 552 f_{n - 13} + 766 f_{n - 12} + 904 f_{n - 11} + 942 f_{n - 10} + 894 f_{n - 9} + 792 f_{n - 8} + 666 f_{n - 7} + 539 f_{n - 6} + 422 f_{n - 5} + 324 f_{n - 4} + 241 f_{n - 3} + 181 f_{n - 2} + 126 f_{n - 1} + 55 f_{n + 1} + 66 f_{n + 2}
+        \end{eqnarray}
+
+    \caption{Relations produced by accumulating equation in 
+        \autoref{triangle:fib:first:order:second:accumulation}}
+    \label{triangle:fib:first:order:third:accumulation}
+\end{sidewaystable}
+
+\begin{sidewaystable}
+    \begin{displaymath}
+        \left[
+            \begin{array}{ccccccccccccccccccccc}
+                1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                3 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                6 & 3 & 4 & 2 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                10 & 6 & 9 & 7 & 6 & 3 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                15 & 10 & 16 & 15 & 16 & 13 & 9 & 4 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                21 & 15 & 25 & 26 & 31 & 31 & 29 & 22 & 13 & 5 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                28 & 21 & 36 & 40 & 51 & 57 & 62 & 60 & 51 & 35 & 18 & 6 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+                36 & 28 & 49 & 57 & 76 & 91 & 108 & 119 & 122 & 111 & 86 & 53 & 24 & 7 & 1 & 0 & 0 & 0 & 0 & 0 & 0\\
+                45 & 36 & 64 & 77 & 106 & 133 & 167 & 199 & 227 & 241 & 233 & 197 & 139 & 77 & 31 & 8 & 1 & 0 & 0 & 0 & 0\\
+                55 & 45 & 81 & 100 & 141 & 183 & 239 & 300 & 366 & 426 & 468 & 474 & 430 & 336 & 216 & 108 & 39 & 9 & 1 & 0 & 0\\
+                66 & 55 & 100 & 126 & 181 & 241 & 324 & 422 & 539 & 666 & 792 & 894 & 942 & 904 & 766 & 552 & 324 & 147 & 48 & 10 & 1
+            \end{array}
+            \right]  \quad % matrix * vector
+            \left[
+                \begin{array}{c}
+                    f_{n + 2}\\
+                    f_{n + 1}\\
+                    f_{n}\\
+                    f_{n - 1}\\
+                    f_{n - 2}\\
+                    f_{n - 3}\\
+                    f_{n - 4}\\
+                    f_{n - 5}\\
+                    f_{n - 6}\\
+                    f_{n - 7}\\
+                    f_{n - 8}\\
+                    f_{n - 9}\\
+                    f_{n - 10}\\
+                    f_{n - 11}\\
+                    f_{n - 12}\\
+                    f_{n - 13}\\
+                    f_{n - 14}\\
+                    f_{n - 15}\\
+                    f_{n - 16}\\
+                    f_{n - 17}\\
+                    f_{n - 18}
+                    \end{array}\right] \quad = \quad 
+            \left[
+                \begin{array}{c}
+                    f_{n + 2}\\
+                    4 f_{n + 2}\\
+                    10 f_{n + 2}\\
+                    20 f_{n + 2}\\
+                    35 f_{n + 2}\\
+                    56 f_{n + 2}\\
+                    84 f_{n + 2}\\
+                    120 f_{n + 2}\\
+                    165 f_{n + 2}\\
+                    220 f_{n + 2}\\
+                    286 f_{n + 2}
+                    \end{array}\right]
+        \end{displaymath}
+
+    \caption{Matrix notation of \autoref{triangle:fib:first:order:third:accumulation}}
+    \label{matrix:notation:triangle:fib:first:order:third:accumulation}
+\end{sidewaystable}
+
+\subsection{Higher accumulations}
+
+It is possible to continue to accumulate as done in previous
+section, producing each time different combinations to which
+Fibonacci numbers have to obey. The important fact to keep in mind
+is that each produced matrix can be built using \autoref{eq:triangle:rec:rule:fib}.
+
+\section{Base instantiation}
+
+If we instantiate variable $n$ appearing in relations reported in
+\autoref{triangle:fib:first:order}, looking for the greater value
+that makes a subscript vanish, it is possible to derive the 
+new set of relations report in \autoref{triangle:fib:first:order:base:instantiation},
+again triangle-shaped.
+
+\begin{equation}
+    \hspace{-3cm}
+    \begin{array}{c}
+        f_{2} = f_{0} + f_{1}\\
+        f_{4} = f_{0} + 2 f_{1} + f_{2}\\
+        f_{6} = f_{0} + 3 f_{1} + 3 f_{2} + f_{3}\\
+        f_{8} = f_{0} + 4 f_{1} + 6 f_{2} + 4 f_{3} + f_{4}\\
+        f_{10} = f_{0} + 5 f_{1} + 10 f_{2} + 10 f_{3} + 5 f_{4} + f_{5}\\
+        f_{12} = f_{0} + 6 f_{1} + 15 f_{2} + 20 f_{3} + 15 f_{4} + 6 f_{5} + f_{6}\\
+        f_{14} = f_{0} + 7 f_{1} + 21 f_{2} + 35 f_{3} + 35 f_{4} + 21 f_{5} + 7 f_{6} + f_{7}\\
+        f_{16} = f_{0} + 8 f_{1} + 28 f_{2} + 56 f_{3} + 70 f_{4} + 56 f_{5} + 28 f_{6} + 8 f_{7} + f_{8}\\
+        f_{18} = f_{0} + 9 f_{1} + 36 f_{2} + 84 f_{3} + 126 f_{4} + 126 f_{5} + 84 f_{6} + 36 f_{7} + 9 f_{8} + f_{9}\\
+        f_{20} = f_{0} + 10 f_{1} + 45 f_{2} + 120 f_{3} + 210 f_{4} + 252 f_{5} + 210 f_{6} + 120 f_{7} + 45 f_{8} + 10 f_{9} + f_{10}\\
+        f_{22} = f_{0} + 11 f_{1} + 55 f_{2} + 165 f_{3} + 330 f_{4} + 462 f_{5} + 462 f_{6} + 330 f_{7} + 165 f_{8} + 55 f_{9} + 11 f_{10} + f_{11}\\
+        f_{24} = f_{0} + 12 f_{1} + 66 f_{2} + 220 f_{3} + 495 f_{4} + 792 f_{5} + 924 f_{6} + 792 f_{7} + 495 f_{8} + 220 f_{9} + 66 f_{10} + 12 f_{11} + f_{12}\\
+        f_{26} = f_{0} + 13 f_{1} + 78 f_{2} + 286 f_{3} + 715 f_{4} + 1287 f_{5} + 1716 f_{6} + 1716 f_{7} + 1287 f_{8} + 715 f_{9} + 286 f_{10} + 78 f_{11} + 13 f_{12} + f_{13}\\
+    \end{array}
+    \label{triangle:fib:first:order:base:instantiation}
+\end{equation}
+
+Using the identity:
+\begin{displaymath}
+    \sum_{k=1}^{n} f_{2 k} = f_{2 n + 1} - 1
+\end{displaymath}
+we accumulate relations in \autoref{triangle:fib:first:order:base:instantiation} 
+and performing substitution on left hand sides according the cited 
+rewriting rule, obtaining:
+\begin{displaymath}
+    \begin{array}{c}
+        f_{3} - 1 = f_{0} + f_{1}\\
+        f_{5} - 1 = 2 f_{0} + 3 f_{1} + f_{2}\\
+        f_{7} - 1 = 3 f_{0} + 6 f_{1} + 4 f_{2} + f_{3}\\
+        f_{9} - 1 = 4 f_{0} + 10 f_{1} + 10 f_{2} + 5 f_{3} + f_{4}\\
+        f_{11} - 1 = 5 f_{0} + 15 f_{1} + 20 f_{2} + 15 f_{3} + 6 f_{4} + f_{5}\\
+        f_{13} - 1 = 6 f_{0} + 21 f_{1} + 35 f_{2} + 35 f_{3} + 21 f_{4} + 7 f_{5} + f_{6}\\
+        f_{15} - 1 = 7 f_{0} + 28 f_{1} + 56 f_{2} + 70 f_{3} + 56 f_{4} + 28 f_{5} + 8 f_{6} + f_{7}\\
+        f_{17} - 1 = 8 f_{0} + 36 f_{1} + 84 f_{2} + 126 f_{3} + 126 f_{4} + 84 f_{5} + 36 f_{6} + 9 f_{7} + f_{8}\\
+        f_{19} - 1 = 9 f_{0} + 45 f_{1} + 120 f_{2} + 210 f_{3} + 252 f_{4} + 210 f_{5} + 120 f_{6} + 45 f_{7} + 10 f_{8} + f_{9}\\
+        f_{21} - 1 = 10 f_{0} + 55 f_{1} + 165 f_{2} + 330 f_{3} + 462 f_{4} + 462 f_{5} + 330 f_{6} + 165 f_{7} + 55 f_{8} + 11 f_{9} + f_{10}\\
+    \end{array}
+    \label{triangle:fib:first:order:odds}
+\end{displaymath}
+Let us proceed without simplifing using $f_{0}=0$, we will 
+do so after. In the following matrix-vector product, let $\mathcal{M}$
+be the matrix, so:
+\begin{displaymath}
+    \left[\begin{array}{ccccccccccc}
+        1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        2 & 3 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        3 & 6 & 4 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        4 & 10 & 10 & 5 & 1 & 0 & 0 & 0 & 0 & 0 & 0\\
+        5 & 15 & 20 & 15 & 6 & 1 & 0 & 0 & 0 & 0 & 0\\
+        6 & 21 & 35 & 35 & 21 & 7 & 1 & 0 & 0 & 0 & 0\\
+        7 & 28 & 56 & 70 & 56 & 28 & 8 & 1 & 0 & 0 & 0\\
+        8 & 36 & 84 & 126 & 126 & 84 & 36 & 9 & 1 & 0 & 0\\
+        9 & 45 & 120 & 210 & 252 & 210 & 120 & 45 & 10 & 1 & 0\\
+        10 & 55 & 165 & 330 & 462 & 462 & 330 & 165 & 55 & 11 & 1
+        \end{array}\right]\left[
+        \begin{array}{c}
+            f_{0}\\
+            f_{1}\\
+            f_{2}\\
+            f_{3}\\
+            f_{4}\\
+            f_{5}\\
+            f_{6}\\
+            f_{7}\\
+            f_{8}\\
+            f_{9}\\
+            f_{10}
+        \end{array}\right]=\left[
+        \begin{array}{c}
+            f_{1} - 1\\
+            f_{3} - 1\\
+            f_{5} - 1\\
+            f_{7} - 1\\
+            f_{9} - 1\\
+            f_{11} - 1\\
+            f_{13} - 1\\
+            f_{15} - 1\\
+            f_{17} - 1\\
+            f_{19} - 1\\
+            f_{21} - 1
+        \end{array}\right]
+\end{displaymath}
+it is interesting to look for a \emph{binomial transform} of
+matrix $\mathcal{M}$, namely find a matrix $\mathcal{T}$ such that
+$\mathcal{M} = \mathcal{P}\mathcal{T}$, where $\mathcal{P}$ is 
+the Pascal triangle. In order to do that, multiply on the left
+both members by $\mathcal{P}^{-1}$, obtaining:
+\begin{displaymath}
+    \mathcal{T} = \left[\begin{array}{ccccccccccc}
+        1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        0 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        1 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        -1 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        1 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0 & 0\\
+        -1 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0 & 0\\
+        1 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0 & 0\\
+        -1 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 0\\
+        1 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0\\
+        -1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 0\\
+        1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 1\\
+    \end{array}\right]
+\end{displaymath}
+matrix $\mathcal{M}$ is known as $A153861$\footnote{\url{http://oeis.org/A153861}},
+while matrix $\mathcal{T}$ is known as $A153860$\footnote{\url{http://oeis.org/A153860}}.
+
+    
+Apply now the simplification according to $f_{0}=0$, which yield:
+\begin{displaymath}
+    \begin{array}{c}f_{3} - 1 = f_{1}\\
+    f_{5} - 1 = 3 f_{1} + f_{2}\\
+    f_{7} - 1 = 6 f_{1} + 4 f_{2} + f_{3}\\
+    f_{9} - 1 = 10 f_{1} + 10 f_{2} + 5 f_{3} + f_{4}\\
+    f_{11} - 1 = 15 f_{1} + 20 f_{2} + 15 f_{3} + 6 f_{4} + f_{5}\\
+    f_{13} - 1 = 21 f_{1} + 35 f_{2} + 35 f_{3} + 21 f_{4} + 7 f_{5} + f_{6}\\
+    f_{15} - 1 = 28 f_{1} + 56 f_{2} + 70 f_{3} + 56 f_{4} + 28 f_{5} + 8 f_{6} + f_{7}\\
+    f_{17} - 1 = 36 f_{1} + 84 f_{2} + 126 f_{3} + 126 f_{4} + 84 f_{5} + 36 f_{6} + 9 f_{7} + f_{8}\\
+    f_{19} - 1 = 45 f_{1} + 120 f_{2} + 210 f_{3} + 252 f_{4} + 210 f_{5} + 120 f_{6} + 45 f_{7} + 10 f_{8} + f_{9}\\
+    f_{21} - 1 = 55 f_{1} + 165 f_{2} + 330 f_{3} + 462 f_{4} + 462 f_{5} + 330 f_{6} + 165 f_{7} + 55 f_{8} + 11 f_{9} + f_{10}\\
+    \end{array}
+\end{displaymath}
+in matrix notation:
+\begin{displaymath}
+    \left[
+    \begin{array}{cccccccccc}
+        1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        3 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        6 & 4 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        10 & 10 & 5 & 1 & 0 & 0 & 0 & 0 & 0 & 0\\
+        15 & 20 & 15 & 6 & 1 & 0 & 0 & 0 & 0 & 0\\
+        21 & 35 & 35 & 21 & 7 & 1 & 0 & 0 & 0 & 0\\
+        28 & 56 & 70 & 56 & 28 & 8 & 1 & 0 & 0 & 0\\
+        36 & 84 & 126 & 126 & 84 & 36 & 9 & 1 & 0 & 0\\
+        45 & 120 & 210 & 252 & 210 & 120 & 45 & 10 & 1 & 0\\
+        55 & 165 & 330 & 462 & 462 & 330 & 165 & 55 & 11 & 1
+        \end{array}\right]  \left[
+        \begin{array}{c}
+            f_{1}\\
+            f_{2}\\
+            f_{3}\\
+            f_{4}\\
+            f_{5}\\
+            f_{6}\\
+            f_{7}\\
+            f_{8}\\
+            f_{9}\\
+            f_{10}\end{array}\right] = \left[
+        \begin{array}{c}
+            f_{3} - 1\\
+            f_{5} - 1\\
+            f_{7} - 1\\
+            f_{9} - 1\\
+            f_{11} - 1\\
+            f_{13} - 1\\
+            f_{15} - 1\\
+            f_{17} - 1\\
+            f_{19} - 1\\
+            f_{21} - 1\\
+            \end{array}\right]
+\end{displaymath}
+Infinite matrix is known $A104712$\footnote{\url{http://oeis.org/A104712}}
+and can be expressed as a Riordan array:
+\begin{displaymath}
+    \mathcal{R}\left(\frac{1}{(1-t)^3}, \frac{t}{1-t}\right)
+\end{displaymath}
+
+Finally, we can state the following result.
+\begin{thm}
+    \begin{displaymath}
+        f_{2n+1} - 1 = \sum_{k=1}^{n}{{{n+1}\choose{k+1}}f_{k}}
+    \end{displaymath}
+\end{thm}
+
+\subsection{Another characterization of $f_{2n}$}
+Using the identity:
+\begin{displaymath}
+    \sum_{k=0}^{n} f_{2 k + 1} = f_{2 (n+1)}
+\end{displaymath}
+we add $1$, which equals to $f_{-1}$ to leave this term
+as a symbol, to both members in each equation within 
+\autoref{triangle:fib:first:order:odds}, accumulating them
+and, finally, applying the above identity on right hand sides, we get:
+\begin{equation}
+    \begin{array}{c}
+        f_{2} = f_{-1} + f_{0}\\
+        f_{4} =2 f_{-1} + 2 f_{0} + f_{1}\\
+        f_{6} =3 f_{-1} + 4 f_{0} + 4 f_{1} + f_{2}\\
+        f_{8} =4 f_{-1} + 7 f_{0} + 10 f_{1} + 5 f_{2} + f_{3}\\
+        f_{10} =5 f_{-1} + 11 f_{0} + 20 f_{1} + 15 f_{2} + 6 f_{3} + f_{4}\\
+        f_{12} =6 f_{-1} + 16 f_{0} + 35 f_{1} + 35 f_{2} + 21 f_{3} + 7 f_{4} + f_{5}\\
+        f_{14} =7 f_{-1} + 22 f_{0} + 56 f_{1} + 70 f_{2} + 56 f_{3} + 28 f_{4} + 8 f_{5} + f_{6}\\
+        f_{16} =8 f_{-1} + 29 f_{0} + 84 f_{1} + 126 f_{2} + 126 f_{3} + 84 f_{4} + 36 f_{5} + 9 f_{6} + f_{7}\\
+        f_{18} =9 f_{-1} + 37 f_{0} + 120 f_{1} + 210 f_{2} + 252 f_{3} + 210 f_{4} + 120 f_{5} + 45 f_{6} + 10 f_{7} + f_{8}
+    \end{array}
+    \label{eq:tringle:even:subscripted:fibs:sym}
+\end{equation}
+moving every term matching $c f_{-1}$, for some $c\in\mathbb{N}$, from right hand sides to
+left hand sides again, yields:
+\begin{displaymath}
+    \begin{array}{c}
+        f_{2} - f_{-1}= f_{0}\\
+        f_{4} -2 f_{-1} = 2 f_{0} + f_{1}\\
+        f_{6} -3 f_{-1} = 4 f_{0} + 4 f_{1} + f_{2}\\
+        f_{8} -4 f_{-1} = 7 f_{0} + 10 f_{1} + 5 f_{2} + f_{3}\\
+        f_{10} -5 f_{-1} = 11 f_{0} + 20 f_{1} + 15 f_{2} + 6 f_{3} + f_{4}\\
+        f_{12} -6 f_{-1} = 16 f_{0} + 35 f_{1} + 35 f_{2} + 21 f_{3} + 7 f_{4} + f_{5}\\
+        f_{14} -7 f_{-1} = 22 f_{0} + 56 f_{1} + 70 f_{2} + 56 f_{3} + 28 f_{4} + 8 f_{5} + f_{6}\\
+        f_{16} -8 f_{-1} = 29 f_{0} + 84 f_{1} + 126 f_{2} + 126 f_{3} + 84 f_{4} + 36 f_{5} + 9 f_{6} + f_{7}\\
+        f_{18} -9 f_{-1} = 37 f_{0} + 120 f_{1} + 210 f_{2} + 252 f_{3} + 210 f_{4} + 120 f_{5} + 45 f_{6} + 10 f_{7} + f_{8}
+        \end{array}
+\end{displaymath}
+Looking at right hand side, we can build a matrix which plays the role
+of matrix $\mathcal{M}$ in the above section, namely:
+\begin{displaymath}
+    \left[\begin{array}{ccccccccc}
+        1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        2 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        4 & 4 & 1 & 0 & 0 & 0 & 0 & 0 & 0\\
+        7 & 10 & 5 & 1 & 0 & 0 & 0 & 0 & 0\\
+        11 & 20 & 15 & 6 & 1 & 0 & 0 & 0 & 0\\
+        16 & 35 & 35 & 21 & 7 & 1 & 0 & 0 & 0\\
+        22 & 56 & 70 & 56 & 28 & 8 & 1 & 0 & 0\\
+        29 & 84 & 126 & 126 & 84 & 36 & 9 & 1 & 0\\
+        37 & 120 & 210 & 252 & 210 & 120 & 45 & 10 & 1
+        \end{array}\right]
+\end{displaymath}
+if we want to find a matrix $\mathcal{T}$ such that 
+    $\mathcal{M}=\mathcal{P}\mathcal{T}$, we multiply on the left
+    by $\mathcal{P}^{-1}$, obtaining:
+\begin{displaymath}
+    \mathcal{T} = \left[\begin{array}{ccccccccc}
+        1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        1 & 1 & 0 & 0 & 0 & 0 & 0 & 0 & 0\\
+        1 & 2 & 1 & 0 & 0 & 0 & 0 & 0 & 0\\
+        0 & 1 & 2 & 1 & 0 & 0 & 0 & 0 & 0\\
+        0 & 0 & 1 & 2 & 1 & 0 & 0 & 0 & 0\\
+        0 & 0 & 0 & 1 & 2 & 1 & 0 & 0 & 0\\
+        0 & 0 & 0 & 0 & 1 & 2 & 1 & 0 & 0\\
+        0 & 0 & 0 & 0 & 0 & 1 & 2 & 1 & 0\\
+        0 & 0 & 0 & 0 & 0 & 0 & 1 & 2 & 1
+        \end{array}\right]
+\end{displaymath}
+On the other hand, if we simplify according to $f_{0}=0$ and
+$f_{-1}=1$, we get:
+\begin{displaymath}
+    \begin{array}{c}
+        f_{2} - 1=0\\
+        f_{4} - 2=f_{1}\\
+        f_{6} - 3=4f_{1} + f_{2}\\
+        f_{8} - 4=10f_{1} + 5 f_{2} + f_{3}\\
+        f_{10} - 5=20f_{1} + 15 f_{2} + 6 f_{3} + f_{4}\\
+        f_{12} - 6=35f_{1} + 35 f_{2} + 21 f_{3} + 7 f_{4} + f_{5}\\
+        f_{14} - 7=56f_{1} + 70 f_{2} + 56 f_{3} + 28 f_{4} + 8 f_{5} + f_{6}\\
+        f_{16} - 8=84f_{1} + 126 f_{2} + 126 f_{3} + 84 f_{4} + 36 f_{5} + 9 f_{6} + f_{7}\\
+        f_{18} - 9 = 120 f_{1} + 210 f_{2} + 252 f_{3} + 210 f_{4} + 120 f_{5} + 45 f_{6} + 10 f_{7} + f_{8}
+        \end{array}
+\end{displaymath}
+coefficient matrix is known as $A104713$\footnote{\url{http://oeis.org/A104713}},
+which is a Riordan array:
+\begin{displaymath}
+    \mathcal{R}\left(\frac{1}{(1-t)^4}, \frac{t}{1-t}\right)
+\end{displaymath}
+finally, we can derive the following result.
+
+\begin{thm}
+    \begin{displaymath}
+        f_{2n} - n = \sum_{k=1}^{n-1}{{{n+1}\choose{k+2}}f_{k}}
+    \end{displaymath}
+\end{thm}
+
+Moreover, evaluating right hand sides of equations in 
+\autoref{eq:tringle:even:subscripted:fibs:sym}, preveenting terms
+containing $f_{-1}$ to be substituted, leaving them symbols, we get
+the following:
+\begin{displaymath}
+    \begin{array}{c}
+        f_{2} = f_{-1}\\
+        f_{4} = 2 f_{-1} + 1\\
+        f_{6} = 3 f_{-1} + 5\\
+        f_{8} = 4 f_{-1} + 17\\
+        f_{10} = 5 f_{-1} + 50\\
+        f_{12} = 6 f_{-1} + 138\\
+        f_{14} = 7 f_{-1} + 370\\
+        f_{16} = 8 f_{-1} + 979\\
+        f_{18} = 9 f_{-1} + 2575
+    \end{array}
+\end{displaymath}
+where sequence $(0,1,5,17,50,138,370,979,2575,\ldots)$ is known as 
+$A054452$\footnote{\url{http://oeis.org/A054452}}. It is very interesting
+to note a link pointed out in the encyclopedia, which shows that
+such sequence is the second column of triangle $A054450$, to be 
+correct $A054450(2n-1,2)$\footnote{\url{http://oeis.org/A054450}}.
+
+From the encyclopedia again, its generating function $G(t)$ is defined as:
+\begin{displaymath}
+    G(t) = \frac{t^2}{(1-t)^2 (1-3t+t^2)}
+\end{displaymath}
+therefore, summing the generating function of natural numbers, namely
+$\frac{t}{(1-t)^2}$, we can derive the generating function of even
+subscripted Fibonacci numbers, which is:
+\begin{displaymath}
+    \mathcal{G}\lbrace f_{2n}\rbrace_{n\in\mathbb{N}} = \frac{t}{1 -3t +t^2}
+\end{displaymath}
+
+    
+
+\section{Second Order unfolding}
+
+It is possible to use a different recurrence relation to do 
+unfolding steps, a natural choice could be to use at each
+unfolding step the recently computed one: we call this scheme
+\emph{second order} unfolding. Applied to Fibonacci recurrence
+relation yield the following equations, each one corresponding
+to $0,1,2,3$ unfolding steps:
+\begin{displaymath}
+    \hspace{-3.5cm}
+    \begin{array}{c}
+         f_{n} = f_{n - 2} + f_{n - 1}\\
+         f_{n} = f_{n - 4} + 2 f_{n - 3} + f_{n - 2}\\
+         f_{n} = f_{n - 8} + 4 f_{n - 7} + 5 f_{n - 6} + 2 f_{n - 5} + f_{n - 4} + f_{n - 3}\\
+         f_{n} = f_{n - 16} + 8 f_{n - 15} + 26 f_{n - 14} + 44 f_{n - 13} + 42 f_{n - 12} + 25 f_{n - 11} + 13 f_{n - 10} + 7 f_{n - 9} + 3 f_{n - 8} + 3 f_{n - 7} + 3 f_{n - 6} + f_{n - 5}\\
+%        f_{n} = f_{n - 32} + 16 f_{n - 31} + 116 f_{n - 30} + 504 f_{n - 29} + 1464 f_{n - 28} + 3010 f_{n - 27} + 4546 f_{n - 26} + 5218 f_{n - 25} + 4755 f_{n - 24} + 3635 f_{n - 23} + 2438 f_{n - 22} + 1473 f_{n - 21} + 863 f_{n - 20} + 541 f_{n - 19} + 333 f_{n - 18} + 177 f_{n - 17} + 88 f_{n - 16} + 49 f_{n - 15} + 37 f_{n - 14} + 34 f_{n - 13} + 28 f_{n - 12} + 17 f_{n - 11} + 8 f_{n - 10} + 4 f_{n - 9} + f_{n - 8}
+    \end{array}
+\end{displaymath}
+previous equations shows other ways to combine Fibonacci numbers
+to get other Fibonacci numbers, but combination matrix composed of
+such coefficients hasn't a ``closed'' characterization 
+(and it is computationally hard to compute).
+
+

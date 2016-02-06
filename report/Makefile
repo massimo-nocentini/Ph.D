@@ -1,7 +1,7 @@
 
 TEX_COMPILER = lualatex
 
-DOCUMENT_NAME = on-recurrences-unfolding
+DOCUMENT_NAME = document
 DOCUMENT_NAME_TEX = $(DOCUMENT_NAME).tex
 
 pdf:

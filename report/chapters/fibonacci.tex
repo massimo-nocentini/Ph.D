@@ -9,7 +9,7 @@ We use the following recurrence to symbolically characterize Fibonacci numbers:
     f_{n + 2} = f_{n} + f_{n + 1}
 \end{equation}
 In this section we are interested in applying \emph{first order} unfolding
-to such relation, namely unfold both term $f_{n}$ and $t_{n+1}$ according
+to such relation, namely unfold both term $f_{n}$ and $f_{n+1}$ according
 \autoref{eq:fib:first:order:unfolding}. Doing one unfolding step yield:
 \begin{displaymath} 
     f_{n + 2} = f_{n - 2} + 2 f_{n - 1} + f_{n}
@@ -30,6 +30,16 @@ following generalization, which we state as a theorem.
         f_{n} = \sum_{k=0}^{m} {{{m}\choose{k}} f_{n - 2 m + k}}
     \end{displaymath} 
 \end{thm}
+Preview theorem can be manipulated as follows:
+\begin{displaymath} 
+    \begin{split} 
+        f_{n+m} &= \sum_{k\in\lbrace 0,\ldots,m\rbrace}{{{m}\choose{k}} f_{n - m + k}}\\
+                &= \sum_{k\in\lbrace 0,\ldots,m\rbrace}{{{m}\choose{m-k}} f_{n - m + k}}\\
+                &= \text{let } \lbrace j = m-k \rbrace\\
+                &= \sum_{j\in\lbrace m,\ldots,0\rbrace}{{{m}\choose{j}} f_{n - j}}\\
+    \end{split} 
+\end{displaymath} 
+as Benjamin and Quinn asks to show in an exercise.
 
 
 \begin{sidewaystable}
@@ -132,6 +142,30 @@ therefore we can derive another identity, giving it as a theorem.
         \left(k + 1\right) f_{n} = \sum_{i=0}^{2 k}  d_{k,2 k - i} f_{n - i}
     \end{displaymath}
 \end{thm}
+
+It is interesting to show that every natural number appears in such triangle,
+more precisely:
+\begin{thm}
+    Let $n\in\mathbb{N}$ such that $n > 0$, then:
+    \begin{displaymath}
+        d_{n,2n-1} = n
+    \end{displaymath}
+\end{thm}
+\begin{proof}
+    By induction on $n$.\\
+    \begin{itemize}
+        \item base case $n=1$ requires to show that $d_{1,1}=1$. \\
+            Simply it holds because $d_{1,1} = f_{2} = 1$;
+        \item assume by induction hypothesis that $d_{n,2n-1} = n$ holds,
+            then prove that $d_{n+1,2(n+1)-1} = n+1$ holds.\\
+            By recurrence relation \autoref{eq:triangle:rec:rule:fib} characterizing
+            each matrix' coefficient we can rewrite: 
+            \begin{displaymath}
+                d_{n+1,2(n+1)-1} =d_{n+1,2n+1} = d_{n,2n-1}+d_{n,2n}=n+1
+            \end{displaymath}
+            since, by construction $d_{n,2n}=1$ and by induction hp $d_{n,2n-1}=n$, as required.
+    \end{itemize}
+\end{proof}
 
 
 \begin{sidewaystable}

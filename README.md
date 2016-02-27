@@ -5,11 +5,16 @@ This project aims to implement a prototype to unfold recurrence
 relations *symbolically*. Our definitions are built on top of *SymPy*
 and target Python **3.5.1**.
 
-We describe prototype features in a [notebook][recurrences-unfolding], 
-where some unfolded recurrences are shown. We split the content 
+First, a prototype where recurrences depending on *only one* index 
+is described in [this notebook][recurrences-unfolding], 
+where unfoldings are applied to some well known recurrence relations, 
+Fibonacci in particular. We split the content 
 about the underlying *Binomial transform*, which arises
 in the characterization of Fibonacci numbers with odd subscripts, 
 in a [companion document][companion].
+
+Second, another prototype where recurrences depending on doubly indexed
+relations is provided in [this notebook][doubly-indexed].
 
 # Colouring matrices
 
@@ -33,3 +38,4 @@ present a basic introduction to [SymPy] for students.
 [recurrences-unfolding]:http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/master/sympy-notebook/recurrences-unfolding.ipynb?flush_cache=true
 [companion]:http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/master/sympy-notebook/binomial-transform-applied-to-fibonacci-numbers.ipynb?flush_cache=true
 [catalan-modular]:http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/master/sympy-notebook/colouring-matrices.ipynb?flush_cache=true
+[doubly-indexed]:http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/master/sympy-notebook/matrix-recurrences-unfolding.ipynb?flush_cache=true

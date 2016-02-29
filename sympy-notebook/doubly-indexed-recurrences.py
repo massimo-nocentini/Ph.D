@@ -103,7 +103,7 @@ def extract_inner_matrices(matrix, indexed_sym, unfolding_rows):
 def check_matrix_expansion(m, expansion, inits={}):
     sum_matrix = zeros(m.rows, m.cols)
     for k,v in expansion.items(): sum_matrix += k * v
-    return Eq(m, sum_matrix).subs(inits)
+    return Eq(m, sum_matrix).subs(inits).simplify()
 
 def make_abstract_A_sequence(spec, inits={}):
 

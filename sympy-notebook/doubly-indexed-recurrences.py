@@ -2,6 +2,7 @@
 from sympy import *
 from sympy.abc import x, n, z, t, k
 from sympy.core.cache import *
+from sympy.core.function import UndefinedFunction
 
 from functools import reduce
 
@@ -29,8 +30,11 @@ def unfold_in_matrix(m, rec,
             row_eq, col_eq = Eq(row_sym_index,r), Eq(col_sym_index,c)
             row_sol, col_sol = (solve(row_eq, row_sym)[0], solve(col_eq, col_sym)[0])
             instantiated_rec = rec.subs({row_sym: row_sol, col_sym:col_sol}, simultaneous=True)
+            #instantiated_rec = rec.replace(row_sym, row_sol).replace(col_sym, col_sol)
+                #.subs({row_sym: row_sol, col_sym:col_sol}, simultaneous=True)
             unfold_term = 0
-            for summand in flatten(instantiated_rec.rhs.args, cls=Add):
+            #for summand in flatten(instantiated_rec.rhs.args, cls=Add):
+            for summand in instantiated_rec.rhs.args:
                 coeff_wild = Wild('coeff', exclude=[indexed_sym])
                 row_wild = Wild('n', exclude=[indexed_sym])
                 col_wild = Wild('k', exclude=[indexed_sym])
@@ -47,13 +51,15 @@ def unfold_in_matrix(m, rec,
     return (m, substitutions) if include_substitutions else m
             
 def build_rec_from_gf(gf_spec, indexed_sym, 
-                      row_sym=Symbol('n'), col_sym=Symbol('k')):
+                      row_sym=Symbol('n'), col_sym=Symbol('k'), evaluate=False):
     '''I have to build a recurrence starting from `indexed_sym[n+1, k+1]`'''
     gf, gf_var, n = gf_spec
     gf_series = gf.series(gf_var, n=n)
-    rhs = 0
 
-    for i in range(n): rhs += gf_series.coeff(gf_var, n=i) * indexed_sym[row_sym, col_sym + i]
+    #rhs = 0
+    #for i in range(n): rhs += gf_series.coeff(gf_var, n=i) * indexed_sym[row_sym, col_sym + i]
+    summands = [gf_series.coeff(gf_var, n=i) * indexed_sym[row_sym, col_sym + i] for i in range(n)]
+    rhs = Add(*summands, evaluate=False).doit(deep=False)
         
     return Eq(indexed_sym[row_sym+1, col_sym+1], rhs)
     
@@ -99,19 +105,25 @@ def check_matrix_expansion(m, expansion, inits={}):
     for k,v in expansion.items(): sum_matrix += k * v
     return Eq(m, sum_matrix).subs(inits)
 
-def attach_gen(rec, gen_symbol):
-    '''
-    The following is test code to put in a notebook cell:
+def make_abstract_A_sequence(spec, inits={}):
 
-    a_seq_symbol = IndexedBase('a')
-    catalan_rec = attach_gen(catalan_rec, a_seq_symbol)
-    catalan_rec
-    '''
-    rhs = 0
-    for summand in flatten(rec.rhs.args, cls=Add):
-        _, row, col = summand.args
-        rhs += gen_symbol[col-k] * summand
-    return Eq(rec.lhs, rhs)
+    indexed_sym, indeterminate, order = spec
+
+    def getter(index):
+        if isinstance(indexed_sym, IndexedBase): return indexed_sym[index]
+        elif isinstance(indexed_sym, UndefinedFunction): return indexed_sym(index)
+        else: raise Exception("Only `IndexedBase` or `UndefinedFunction` symbols" +
+                        " are accepted to build abstract A-sequences.")
+
+    # maybe it should be better to use list comprehension like this:
+    #for i in range(order): term += indexed_sym[i]*indeterminate**i
+    summands = [getter(i)*indeterminate**i for i in range(order)]
+    term = Add(*summands, evaluate=False).doit(deep=False)
+    
+    return term.subs(inits)
+
+
+
 
 
 

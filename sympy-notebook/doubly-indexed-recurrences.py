@@ -201,13 +201,11 @@ def unfold_upper_chunk(*args, **kwds):
 
     return matrix.subs(substitutions, simulataneous=True), indexed_sym
 
-def entail_dependencies(*args, **kwds):
+def entail_dependencies(matrix_spec, unfolding_rows):
 
-    (matrix, indexed_sym), substitutions = unfold_in_matrix(*args, 
-        unfold_row_start_index=1, unfolding_cols=1, 
-        include_substitutions=True, **kwds)
+    matrix, indexed_sym = matrix_spec
 
-    return substitutions
+    return {indexed_sym[r,0]:matrix[r,0] for r in range(1, unfolding_rows)}
 
 def build_rec_from_A_matrix(A_matrix): pass
 
@@ -265,8 +263,24 @@ def make_abstract_A_sequence(spec, inits={}):
     return term.subs(inits)
 
 
+def factorize_matrix_as_matrices_sum(matrix_spec, length, perform_check=False, *args, **kwds):
+    
+    assert length <= matrix_spec[0].rows, "It was required an expansion using {} matrices when the provided matrix had {} rows".format(length, matrix_spec[0].rows)
 
+    unfolded_matrix_spec = unfold_in_matrix(matrix_spec, *args, **kwds)
+    splitted_matrix_spec = unfold_in_matrix(matrix_spec, *args, unfold_row_start_index=length, **kwds)
+    clean_splitted_matrix_spec = unfold_upper_chunk(splitted_matrix_spec, *args, unfolding_rows=length, **kwds)
+    matrix_expansion = extract_inner_matrices(clean_splitted_matrix_spec, unfolding_rows=length)
+    inits_dependencies = entail_dependencies(unfolded_matrix_spec, unfolding_rows=length)
 
+    if perform_check:
+        should_be_true = check_matrix_expansion(unfolded_matrix_spec, matrix_expansion, inits_dependencies)
+        assert should_be_true == True
+
+    return dict(unfolded=extract_inner_matrices(unfolded_matrix_spec, unfolding_rows=1), 
+                #expansion={k.subs(inits_dependencies):v for k,v in matrix_expansion} if apply_entailed_dependencies else matrix_expansion,
+                expansion=matrix_expansion,
+                dependencies=inits_dependencies)
 
 
 

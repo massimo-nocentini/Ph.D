@@ -56,20 +56,21 @@ def make_generic_element(generic_term):
                     " are accepted to build abstract A-sequences.")
 
 def symbolic_matrix(dims, gen_coeff_symbol, inits={}, 
-                    lower=True, include_generic_symbol=True):
+                    lower=True, return_full_matrix_spec=True):
+
     ge = make_generic_element(gen_coeff_symbol)
     indexer = IndexingGenericElementVisitor(ge)
     m = Matrix(*dims, lambda n,k: 0 if lower and n < k else indexer(n,k))
-    for sym_coeff, v in inits.items(): 
-        m = Subs(m.subs(sym_coeff, v), sym_coeff, v)
-    return (m, gen_coeff_symbol) if include_generic_symbol else m
+    for sym_coeff, v in inits.items(): m = Subs(m.subs(sym_coeff, v), sym_coeff, v)
+    return (m, gen_coeff_symbol) if return_full_matrix_spec else m
 
-def make_lower_triangular(m):
+def make_lower_triangular(m_spec):
+    m, generic_sym = m_spec
     m = m.copy()
     for r in range(m.rows):
         for c in range(r+1, m.cols):
             m[r,c] = 0
-    return m
+    return m, generic_sym
             
 class AbstractSequence:
 
@@ -122,13 +123,15 @@ class Asequence(AbstractSequence):
 def explode_term_respect_to(term, op_class, deep=False):
 
     exploded = None
-    if isinstance(term, op_class): exploded = flatten(term.args, cls=op_class) if deep else term.args
+    if isinstance(term, op_class): 
+        exploded = flatten(term.args, cls=op_class) if deep else term.args
     else: exploded = [term]
+
     return exploded
     
 
 def unfold_in_matrix(m_spec, Arec, Zrec=None,
-            unfold_row_start_index=1, unfolding_rows=None,
+            unfold_row_start_index=1, unfolding_rows=None, unfolding_cols=None,
             unfold_col_start_index=0, row_sym=Symbol('n'), col_sym=Symbol('k'),
             include_substitutions=False):
 
@@ -141,23 +144,18 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
 
     if unfolding_rows is None: unfolding_rows = m.rows
 
-    Aseq.tie_other_seq(Zseq)
-    Zseq.tie_other_seq(Aseq)
-
     substitutions = {}
     
     for r in range(unfold_row_start_index, unfolding_rows):
         
         sequence = Aseq if unfold_col_start_index > 0 else Zseq
         
-        for c in range(unfold_col_start_index, r+1):
+        cols = r+1 if unfolding_cols is None else unfolding_cols
+        for c in range(unfold_col_start_index, cols):
 
             instantiated_rec = sequence.instantiate((row_sym, r), (col_sym, c))
 
             unfold_term = 0
-            # we assume that recurrence is provided as plain sum of term,
-            # therefore we don't flatten its rhs recursively as the following line would do:
-            #for summand in flatten(instantiated_rec.rhs.args, cls=Add):
             for summand in explode_term_respect_to(instantiated_rec.rhs, Add):
                 coeff_wild = Wild('coeff', exclude=[indexed_sym])
                 row_wild = Wild('n', exclude=[indexed_sym])
@@ -171,13 +169,15 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
                     unfold_term += coeff * m[inst_row_index, inst_col_index]
             m[r,c] = unfold_term
             substitutions.update({indexed_sym[r,c] : unfold_term})
-            sequence = sequence.nextone()
 
-    return (m, substitutions) if include_substitutions else m
+            sequence = Aseq
+
+    m_spec = m, indexed_sym
+    return (m_spec, substitutions) if include_substitutions else m_spec
             
 def build_rec_from_gf(gf_spec, indexed_sym, 
                       row_sym=Symbol('n'), col_sym=Symbol('k'), evaluate=False):
-    '''I have to build a recurrence starting from `indexed_sym[n+1, k+1]`'''
+
     gf, gf_var, n = gf_spec
     gf_series = gf.series(gf_var, n=n)
 
@@ -194,10 +194,20 @@ def apply_subs(m, substitutions):
     return term
 
 def unfold_upper_chunk(*args, **kwds):
-    matrix, substitutions = unfold_in_matrix(*args, 
+
+    (matrix, indexed_sym), substitutions = unfold_in_matrix(*args, 
         unfold_row_start_index=1, unfold_col_start_index=1, 
         include_substitutions=True, **kwds)
-    return matrix.subs(substitutions, simulataneous=True)
+
+    return matrix.subs(substitutions, simulataneous=True), indexed_sym
+
+def entail_dependencies(*args, **kwds):
+
+    (matrix, indexed_sym), substitutions = unfold_in_matrix(*args, 
+        unfold_row_start_index=1, unfolding_cols=1, 
+        include_substitutions=True, **kwds)
+
+    return substitutions
 
 def build_rec_from_A_matrix(A_matrix): pass
 
@@ -205,7 +215,9 @@ def build_rec_from_A_sequence(A_sequence_spec, symbolic_row_index = Symbol('n')+
     A_sequence_gf, indeterminate, order = A_sequence_spec
     return build_rec_from_A_matrix({(symbolic_row_index-1) : (A_sequence, indeterminate)}, order)
 
-def extract_inner_matrices(matrix, indexed_sym, unfolding_rows):
+def extract_inner_matrices(m_spec, unfolding_rows):
+
+    matrix, indexed_sym = m_spec
 
     matrices = {}
 
@@ -219,16 +231,21 @@ def extract_inner_matrices(matrix, indexed_sym, unfolding_rows):
 
             wild_coeff, wild_rest = Wild("coeff", exclude=[0]), Wild("rest")
             matched = matrix[r,c].match(wild_coeff*current_symbolic_element + wild_rest)
-            return matched[wild_coeff] if matched else 0 
+            return matched[wild_coeff] if matched and wild_coeff in matched else 0 
 
         matrices[current_symbolic_element] = Matrix(matrix.rows, matrix.cols, worker)
 
     return matrices
 
-def check_matrix_expansion(m, expansion, inits={}):
+def check_matrix_expansion(m_spec, expansion, inits={}):
+
+    m, indexed_sym = m_spec
+
     sum_matrix = zeros(m.rows, m.cols)
     for k,v in expansion.items(): sum_matrix += k * v
-    return Eq(m, sum_matrix).subs(inits).simplify()
+
+    eq = Eq(m, sum_matrix).subs(inits)
+    return eq.simplify() if eq != True else eq
 
 def make_abstract_A_sequence(spec, inits={}):
 

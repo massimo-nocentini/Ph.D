@@ -145,6 +145,7 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
     if unfolding_rows is None: unfolding_rows = m.rows
 
     substitutions = {}
+    variables = free_variables_in_matrix(m_spec, unfolding_rows)
     
     for r in range(unfold_row_start_index, unfolding_rows):
         
@@ -156,6 +157,7 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
             instantiated_rec = sequence.instantiate((row_sym, r), (col_sym, c))
 
             unfold_term = 0
+
             for summand in explode_term_respect_to(instantiated_rec.rhs, Add):
                 coeff_wild = Wild('coeff', exclude=[indexed_sym])
                 row_wild = Wild('n', exclude=[indexed_sym])
@@ -167,6 +169,8 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
                 coeff = matched[coeff_wild]
                 if inst_row_index in range(m.rows) and inst_col_index in range(m.cols):
                     unfold_term += coeff * m[inst_row_index, inst_col_index]
+
+            unfold_term = Poly(unfold_term, variables).args[0]
             m[r,c] = unfold_term
             substitutions.update({indexed_sym[r,c] : unfold_term})
 
@@ -305,12 +309,23 @@ def instantiate_factorization(factorization, inits=None, perform_check=False):
 
     return inst_factorization
 
+def apply_factor_inside_matrix(matrix_spec, inits=None):
+    
+    gen_sym = matrix_spec[1]
+
+    if inits is None: inits = {gen_sym[0,0]:1}
+
+    return matrix_spec[0].subs(inits).applyfunc(lambda term: factor(term)), gen_sym
 
 
-
-
-
-
+def free_variables_in_matrix(matrix_spec, unfolding_rows):
+    
+    matrix = matrix_spec[0]
+    variables = set()
+    for r in range(unfolding_rows):
+        for c in range(r+1):
+            variables.add(matrix[r,c])
+    return variables
 
 
 

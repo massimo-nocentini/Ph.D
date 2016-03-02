@@ -263,9 +263,12 @@ def make_abstract_A_sequence(spec, inits={}):
     return term.subs(inits)
 
 
-def factorize_matrix_as_matrices_sum(matrix_spec, length, perform_check=False, *args, **kwds):
+def factorize_matrix_as_matrices_sum(matrix_spec, length=None, perform_check=False, *args, **kwds):
     
-    assert length <= matrix_spec[0].rows, "It was required an expansion using {} matrices when the provided matrix had {} rows".format(length, matrix_spec[0].rows)
+    if length is None: length = matrix_spec[0].rows
+
+    assert length <= matrix_spec[0].rows, "It was required an expansion using {} matrices when" + \
+        " the provided matrix had {} rows".format(length, matrix_spec[0].rows)
 
     unfolded_matrix_spec = unfold_in_matrix(matrix_spec, *args, **kwds)
     splitted_matrix_spec = unfold_in_matrix(matrix_spec, *args, unfold_row_start_index=length, **kwds)
@@ -278,13 +281,29 @@ def factorize_matrix_as_matrices_sum(matrix_spec, length, perform_check=False, *
         assert should_be_true == True
 
     return dict(unfolded=extract_inner_matrices(unfolded_matrix_spec, unfolding_rows=1), 
-                #expansion={k.subs(inits_dependencies):v for k,v in matrix_expansion} if apply_entailed_dependencies else matrix_expansion,
+                splitted=clean_splitted_matrix_spec[0],
                 expansion=matrix_expansion,
-                dependencies=inits_dependencies)
+                dependencies=inits_dependencies,
+                generic_symbol=unfolded_matrix_spec[1])
 
+def instantiate_factorization(factorization, inits=None, perform_check=False):
+    
+    if inits is None: 
+        gen_sym = factorization['generic_symbol']
+        inits = {gen_sym[0,0]:1}
 
+    dependencies = {k:v.subs(inits) for k,v in factorization['dependencies'].items()}
+    inst_factorization = dict(  unfolded={k.subs(inits):v for k,v in factorization['unfolded'].items()},
+                                splitted=factorization['splitted'].subs(dependencies).subs(inits),
+                                expansion=[(k.subs(dependencies), v) for k,v in factorization['expansion'].items()],
+                                dependencies=dependencies,
+                                generic_symbol=factorization['generic_symbol'])
+    if perform_check:
+        for k,v in inst_factorization['unfolded'].items():
+            assert k*v == inst_factorization['splitted'], \
+                "Unfolded matrix isn't equal to splitted one after instantiation"
 
-
+    return inst_factorization
 
 
 

@@ -199,11 +199,16 @@ def apply_subs(m, substitutions):
 
 def unfold_upper_chunk(*args, **kwds):
 
-    (matrix, indexed_sym), substitutions = unfold_in_matrix(*args, 
+    matrix_spec, substitutions = unfold_in_matrix(*args, 
         unfold_row_start_index=1, unfold_col_start_index=1, 
         include_substitutions=True, **kwds)
 
-    return matrix.subs(substitutions, simulataneous=True), indexed_sym
+    matrix, indexed_sym = matrix_spec
+
+    subs_matrix = matrix.subs(substitutions, simulataneous=True).applyfunc(
+        lambda term: Poly(term, free_variables_in_matrix(matrix_spec, kwds['unfolding_rows'])).args[0])
+
+    return subs_matrix, indexed_sym
 
 def entail_dependencies(matrix_spec, unfolding_rows):
 
@@ -223,31 +228,56 @@ def extract_inner_matrices(m_spec, unfolding_rows):
 
     matrices = {}
 
+    variables = free_variables_in_matrix(m_spec, unfolding_rows)
+
     for row in range(unfolding_rows):
 
         current_symbolic_element = indexed_sym[row, 0]
+        nullable_variables = variables - set([current_symbolic_element])
+        substitutions = {var:0 for var in nullable_variables}
+
+        nullable_matrix = matrix.subs(substitutions, simultaneous=True)
 
         def worker(r, c):
 
             if r < c: return 0 
 
-            wild_coeff, wild_rest = Wild("coeff", exclude=[0]), Wild("rest")
-            matched = matrix[r,c].match(wild_coeff*current_symbolic_element + wild_rest)
-            return matched[wild_coeff] if matched and wild_coeff in matched else 0 
+            wild_coeff = Wild("coeff")
+            matched = nullable_matrix[r,c].match(wild_coeff*current_symbolic_element)
+
+            #if not matched or wild_coeff not in matched: print("r:{} c:{} not matched: {}".format(r,c,nullable_matrix[r,c]))
+            #if r==5 and c==1: print("5 1: {}".format(matched[wild_coeff]))
+            #if matched[wild_coeff] == 0: print("r:{} c:{} has 0 for {}".format(r,c,current_symbolic_element))
+            return matched[wild_coeff] if matched and wild_coeff in matched else 0
 
         matrices[current_symbolic_element] = Matrix(matrix.rows, matrix.cols, worker)
 
     return matrices
 
-def check_matrix_expansion(m_spec, expansion, inits={}):
+def check_matrix_expansion(m_spec, expansion, inits={}, perform_asserts=True):
 
     m, indexed_sym = m_spec
 
     sum_matrix = zeros(m.rows, m.cols)
-    for k,v in expansion.items(): sum_matrix += k * v
 
-    eq = Eq(m, sum_matrix).subs(inits)
-    return eq.simplify() if eq != True else eq
+    for k,v in expansion.items(): sum_matrix = sum_matrix + (k * v)
+
+    sum_matrix = sum_matrix.subs(inits, simultaneous=True).applyfunc(
+        lambda term: Poly(term, indexed_sym[0,0]).args[0])
+
+    eq = Eq(m, sum_matrix)
+    
+    if eq == True: return True
+
+    for r in range(m.rows):
+        for c in range(r+1):
+            v1 = eq.lhs[r, c].expand()
+            v2 = eq.rhs[r, c].expand()
+            if not (v1 == v2): 
+                if perform_asserts: assert False, "Row: {} Col: {} --- {} != {}".format(r, c, v1, v2)
+                else: return False
+
+    return True
 
 def make_abstract_A_sequence(spec, inits={}):
 
@@ -269,9 +299,10 @@ def make_abstract_A_sequence(spec, inits={}):
 
 def factorize_matrix_as_matrices_sum(matrix_spec, length=None, perform_check=False, *args, **kwds):
     
-    if length is None: length = matrix_spec[0].rows
+    matrix = matrix_spec[0]
+    if length is None: length = matrix.rows
 
-    assert length <= matrix_spec[0].rows, "It was required an expansion using {} matrices when" + \
+    assert length <= matrix.rows, "It was required an expansion using {} matrices when" + \
         " the provided matrix had {} rows".format(length, matrix_spec[0].rows)
 
     unfolded_matrix_spec = unfold_in_matrix(matrix_spec, *args, **kwds)
@@ -292,20 +323,26 @@ def factorize_matrix_as_matrices_sum(matrix_spec, length=None, perform_check=Fal
 
 def instantiate_factorization(factorization, inits=None, perform_check=False):
     
-    if inits is None: 
-        gen_sym = factorization['generic_symbol']
-        inits = {gen_sym[0,0]:1}
+    gen_sym = factorization['generic_symbol']
+
+    if inits is None: inits = {gen_sym[0,0]:1}
 
     dependencies = {k:v.subs(inits) for k,v in factorization['dependencies'].items()}
+    splitted = factorization['splitted'].subs(dependencies).subs(inits).applyfunc(lambda term: expand(term))
     inst_factorization = dict(  unfolded={k.subs(inits):v for k,v in factorization['unfolded'].items()},
-                                splitted=factorization['splitted'].subs(dependencies).subs(inits),
+                                splitted=splitted,
                                 expansion=[(k.subs(dependencies), v) for k,v in factorization['expansion'].items()],
                                 dependencies=dependencies,
                                 generic_symbol=factorization['generic_symbol'])
+
     if perform_check:
         for k,v in inst_factorization['unfolded'].items():
-            assert k*v == inst_factorization['splitted'], \
-                "Unfolded matrix isn't equal to splitted one after instantiation"
+            checking_matrix = k*v
+            for r in range(v.rows):
+                for c in range(v.cols):
+                    v1 = checking_matrix[r,c].expand()
+                    v2 = inst_factorization['splitted'][r, c]
+                    assert v1 == v2, "Row: {} Col: {} --- {} != {}".format(r, c, v1, v2)
 
     return inst_factorization
 
@@ -320,12 +357,14 @@ def apply_factor_inside_matrix(matrix_spec, inits=None):
 
 def free_variables_in_matrix(matrix_spec, unfolding_rows):
     
-    matrix = matrix_spec[0]
-    variables = set()
-    for r in range(unfolding_rows):
-        for c in range(r+1):
-            variables.add(matrix[r,c])
-    return variables
+    matrix, indexed_sym = matrix_spec
+    return set(indexed_sym[r,0] for r in range(unfolding_rows))
+    #variables = set()
+    #for r in range(unfolding_rows):
+        #variables.add(indexed_sym[r,0])
+        ##for c in range(r+1):
+            ##variables.add(matrix[r,c])
+    #return variables
 
 
 

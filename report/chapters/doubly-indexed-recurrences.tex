@@ -1,0 +1,288 @@
+
+\chapter{Doubly indexed recurrences}
+
+%\section{Splitting $\mathcal{C}$, the Catalan triangle}
+
+A Riordan array $\mathcal{R}$ is usually denoted by a pair
+of functions $(d(t), h(t))$, with the main request $h(0)=0$; 
+moreover, an array $\mathcal{R}$ is \emph{proper} if $d(0)\neq 0$
+and $\left.\frac{\partial h(t)}{\partial t}\right|_{t=0}\neq0$.
+It is possible to characterize coefficients lying on column $k$ 
+-- indexing is $0$-based, conventionally -- with the following
+gf:
+\begin{displaymath}
+    d(t)h(t)^{k}
+\end{displaymath}
+
+Assume to start with a purely generic matrix:
+\begin{equation}
+\left[\begin{matrix}
+c_{0,0} &  &  &  &  &  &  &  &  &  \\
+c_{1,0} & c_{1,1} &  &  &  &  &  &  &  &  \\
+c_{2,0} & c_{2,1} & c_{2,2} &  &  &  &  &  &  &  \\
+c_{3,0} & c_{3,1} & c_{3,2} & c_{3,3} &  &  &  &  &  &  \\
+c_{4,0} & c_{4,1} & c_{4,2} & c_{4,3} & c_{4,4} &  &  &  &  &  \\
+c_{5,0} & c_{5,1} & c_{5,2} & c_{5,3} & c_{5,4} & c_{5,5} &  &  &  &  \\
+c_{6,0} & c_{6,1} & c_{6,2} & c_{6,3} & c_{6,4} & c_{6,5} & c_{6,6} &  &  &  \\
+c_{7,0} & c_{7,1} & c_{7,2} & c_{7,3} & c_{7,4} & c_{7,5} & c_{7,6} & c_{7,7} &  &  \\
+c_{8,0} & c_{8,1} & c_{8,2} & c_{8,3} & c_{8,4} & c_{8,5} & c_{8,6} & c_{8,7} & c_{8,8} &  \\
+c_{9,0} & c_{9,1} & c_{9,2} & c_{9,3} & c_{9,4} & c_{9,5} & c_{9,6} & c_{9,7} & c_{9,8} & c_{9,9} \\
+\end{matrix}\right]
+\label{eq:purely:generic:catalan}
+\end{equation}
+and unfold each term starting from row $1$ according to the Catalan recurrence:
+\begin{equation}
+c_{n + 1,k + 1} = c_{n,k} + c_{n,k + 1} + c_{n,k + 2} + c_{n,k + 3} + c_{n,k + 4} + c_{n,k + 5} + c_{n,k + 6} + c_{n,k + 7} + c_{n,k + 8} + c_{n,k + 9}
+\label{eq:catalan:rec}
+\end{equation}
+the result is the following matrix, depending only on $c_{0,0}$, \textcolor{blue}{blue} colored:
+\begin{equation}
+\left[\begin{matrix}
+\textcolor{blue}{c_{0,0}} &  &  &  &  &  &  &  &  &  \\
+c_{0,0} & c_{0,0} &  &  &  &  &  &  &  &  \\
+2 c_{0,0} & 2 c_{0,0} & c_{0,0} &  &  &  &  &  &  &  \\
+5 c_{0,0} & 5 c_{0,0} & 3 c_{0,0} & c_{0,0} &  &  &  &  &  &  \\
+14 c_{0,0} & 14 c_{0,0} & 9 c_{0,0} & 4 c_{0,0} & c_{0,0} &  &  &  &  &  \\
+42 c_{0,0} & 42 c_{0,0} & 28 c_{0,0} & 14 c_{0,0} & 5 c_{0,0} & c_{0,0} &  &  &  &  \\
+132 c_{0,0} & 132 c_{0,0} & 90 c_{0,0} & 48 c_{0,0} & 20 c_{0,0} & 6 c_{0,0} & c_{0,0} &  &  &  \\
+429 c_{0,0} & 429 c_{0,0} & 297 c_{0,0} & 165 c_{0,0} & 75 c_{0,0} & 27 c_{0,0} & 7 c_{0,0} & c_{0,0} &  &  \\
+1430 c_{0,0} & 1430 c_{0,0} & 1001 c_{0,0} & 572 c_{0,0} & 275 c_{0,0} & 110 c_{0,0} & 35 c_{0,0} & 8 c_{0,0} & c_{0,0} &  \\
+4862 c_{0,0} & 4862 c_{0,0} & 3432 c_{0,0} & 2002 c_{0,0} & 1001 c_{0,0} & 429 c_{0,0} & 154 c_{0,0} & 44 c_{0,0} & 9 c_{0,0} & c_{0,0} \\
+\end{matrix}\right]
+\label{eq:unfolded:catalan}
+\end{equation}
+to obtain a standard triangle of numbers, known as Catalan triangle, just plug $c_{0,0}=1$
+in the above matrix:
+\begin{equation}
+\left[\begin{matrix}
+1 &  &  &  &  &  &  &  &  &  \\
+1 & 1 &  &  &  &  &  &  &  &  \\
+2 & 2 & 1 &  &  &  &  &  &  &  \\
+5 & 5 & 3 & 1 &  &  &  &  &  &  \\
+14 & 14 & 9 & 4 & 1 &  &  &  &  &  \\
+42 & 42 & 28 & 14 & 5 & 1 &  &  &  &  \\
+132 & 132 & 90 & 48 & 20 & 6 & 1 &  &  &  \\
+429 & 429 & 297 & 165 & 75 & 27 & 7 & 1 &  &  \\
+1430 & 1430 & 1001 & 572 & 275 & 110 & 35 & 8 & 1 &  \\
+4862 & 4862 & 3432 & 2002 & 1001 & 429 & 154 & 44 & 9 & 1 \\
+\end{matrix}\right]
+\label{eq:standard:catalan}
+\end{equation}
+Such triangle is the matrix expansion of the Riordan array $\mathcal{C}$ defined as:
+\begin{displaymath}
+    \mathcal{C}=\left(\frac{1-\sqrt{1-4\,t}}{2\,t},
+        \frac{1-\sqrt{1-4\,t}}{2}\right)
+\end{displaymath}
+
+\subsection{Two-way splitting}
+
+Now let us unfold starting from row $2$, leaving the first \emph{two} rows purely generic, 
+producing matrix in \autoref{eq:two:splitted:catalan}. We see that the lower part of the
+matrix -- coefficients lying under row $2$, such row included -- dependends on $\textcolor{blue}{c_{1,0}}$
+and $\textcolor{red}{c_{1,1}}$: but it should be possible to rewrite $\textcolor{red}{c_{1,1}}$
+according \autoref{eq:catalan:rec}, yielding matrix in \autoref{eq:clean:two:splitted:catalan},
+which depends only on $\textcolor{blue}{c_{0,0}}$ and $\textcolor{blue}{c_{1,0}}$.
+\begin{landscape}
+%\vskip-4cm
+\footnotesize
+\begin{equation}
+%\rotatebox{90}{$
+\left[\begin{matrix}
+\textcolor{blue}{c_{0,0}} &  &  &  &  &  &  &  &  &  \\
+\textcolor{blue}{c_{1,0}} & \textcolor{red}{c_{1,1}} &  &  &  &  &  &  &  &  \\
+c_{1,0} + c_{1,1} & c_{1,0} + c_{1,1} & c_{1,1} &  &  &  &  &  &  &  \\
+2 c_{1,0} + 3 c_{1,1} & 2 c_{1,0} + 3 c_{1,1} & c_{1,0} + 2 c_{1,1} & c_{1,1} &  &  &  &  &  &  \\
+5 c_{1,0} + 9 c_{1,1} & 5 c_{1,0} + 9 c_{1,1} & 3 c_{1,0} + 6 c_{1,1} & c_{1,0} + 3 c_{1,1} & c_{1,1} &  &  &  &  &  \\
+14 c_{1,0} + 28 c_{1,1} & 14 c_{1,0} + 28 c_{1,1} & 9 c_{1,0} + 19 c_{1,1} & 4 c_{1,0} + 10 c_{1,1} & c_{1,0} + 4 c_{1,1} & c_{1,1} &  &  &  &  \\
+42 c_{1,0} + 90 c_{1,1} & 42 c_{1,0} + 90 c_{1,1} & 28 c_{1,0} + 62 c_{1,1} & 14 c_{1,0} + 34 c_{1,1} & 5 c_{1,0} + 15 c_{1,1} & c_{1,0} + 5 c_{1,1} & c_{1,1} &  &  &  \\
+132 c_{1,0} + 297 c_{1,1} & 132 c_{1,0} + 297 c_{1,1} & 90 c_{1,0} + 207 c_{1,1} & 48 c_{1,0} + 117 c_{1,1} & 20 c_{1,0} + 55 c_{1,1} & 6 c_{1,0} + 21 c_{1,1} & c_{1,0} + 6 c_{1,1} & c_{1,1} &  &  \\
+429 c_{1,0} + 1001 c_{1,1} & 429 c_{1,0} + 1001 c_{1,1} & 297 c_{1,0} + 704 c_{1,1} & 165 c_{1,0} + 407 c_{1,1} & 75 c_{1,0} + 200 c_{1,1} & 27 c_{1,0} + 83 c_{1,1} & 7 c_{1,0} + 28 c_{1,1} & c_{1,0} + 7 c_{1,1} & c_{1,1} &  \\
+1430 c_{1,0} + 3432 c_{1,1} & 1430 c_{1,0} + 3432 c_{1,1} & 1001 c_{1,0} + 2431 c_{1,1} & 572 c_{1,0} + 1430 c_{1,1} & 275 c_{1,0} + 726 c_{1,1} & 110 c_{1,0} + 319 c_{1,1} & 35 c_{1,0} + 119 c_{1,1} & 8 c_{1,0} + 36 c_{1,1} & c_{1,0} + 8 c_{1,1} & c_{1,1} \\
+\end{matrix}\right]
+%$}
+\label{eq:two:splitted:catalan}
+\end{equation}
+\begin{equation}
+\left[\begin{matrix}
+\textcolor{blue}{c_{0,0}} &  &  &  &  &  &  &  &  &  \\
+\textcolor{blue}{c_{1,0}} & c_{0,0} &  &  &  &  &  &  &  &  \\
+c_{0,0} + c_{1,0} & c_{0,0} + c_{1,0} & c_{0,0} &  &  &  &  &  &  &  \\
+3 c_{0,0} + 2 c_{1,0} & 3 c_{0,0} + 2 c_{1,0} & 2 c_{0,0} + c_{1,0} & c_{0,0} &  &  &  &  &  &  \\
+9 c_{0,0} + 5 c_{1,0} & 9 c_{0,0} + 5 c_{1,0} & 6 c_{0,0} + 3 c_{1,0} & 3 c_{0,0} + c_{1,0} & c_{0,0} &  &  &  &  &  \\
+28 c_{0,0} + 14 c_{1,0} & 28 c_{0,0} + 14 c_{1,0} & 19 c_{0,0} + 9 c_{1,0} & 10 c_{0,0} + 4 c_{1,0} & 4 c_{0,0} + c_{1,0} & c_{0,0} &  &  &  &  \\
+90 c_{0,0} + 42 c_{1,0} & 90 c_{0,0} + 42 c_{1,0} & 62 c_{0,0} + 28 c_{1,0} & 34 c_{0,0} + 14 c_{1,0} & 15 c_{0,0} + 5 c_{1,0} & 5 c_{0,0} + c_{1,0} & c_{0,0} &  &  &  \\
+297 c_{0,0} + 132 c_{1,0} & 297 c_{0,0} + 132 c_{1,0} & 207 c_{0,0} + 90 c_{1,0} & 117 c_{0,0} + 48 c_{1,0} & 55 c_{0,0} + 20 c_{1,0} & 21 c_{0,0} + 6 c_{1,0} & 6 c_{0,0} + c_{1,0} & c_{0,0} &  &  \\
+1001 c_{0,0} + 429 c_{1,0} & 1001 c_{0,0} + 429 c_{1,0} & 704 c_{0,0} + 297 c_{1,0} & 407 c_{0,0} + 165 c_{1,0} & 200 c_{0,0} + 75 c_{1,0} & 83 c_{0,0} + 27 c_{1,0} & 28 c_{0,0} + 7 c_{1,0} & 7 c_{0,0} + c_{1,0} & c_{0,0} &  \\
+3432 c_{0,0} + 1430 c_{1,0} & 3432 c_{0,0} + 1430 c_{1,0} & 2431 c_{0,0} + 1001 c_{1,0} & 1430 c_{0,0} + 572 c_{1,0} & 726 c_{0,0} + 275 c_{1,0} & 319 c_{0,0} + 110 c_{1,0} & 119 c_{0,0} + 35 c_{1,0} & 36 c_{0,0} + 8 c_{1,0} & 8 c_{0,0} + c_{1,0} & c_{0,0} \\
+\end{matrix}\right]
+\label{eq:clean:two:splitted:catalan}
+\end{equation}
+\end{landscape}
+Two-way unfolding suggests that we can characterize coefficients lying on a column $k$ as a 
+combination of \emph{two} generating functions $a_{k}(t)$ and $b_{k}(t)$, multiplied by $c_{0,0}$
+and $c_{1,0}$ respectively. Because coefficients lying on a column $k$ of a Riordan array
+can also be characterized by the convolution $d(t)h(t)^{k}$, we can state the following relation:
+\begin{equation} 
+    d(t)h(t)^{k} = c_{0,0}a_{k}(t) + c_{1,0}b_{k}(t)
+    \label{eq:two:splitted:catalan:generic:column:relation}
+\end{equation} 
+which can be used toward to assert a relation about two adjacent columns $k$ and $k+1$. 
+To see this, starts by taking the ratio of those columns:
+\begin{displaymath} 
+    \frac{d(t)h(t)^{k+1}}{d(t)h(t)^{k}} = \frac{c_{0,0}a_{k+1}(t) + c_{1,0}b_{k+1}(t)}
+        {c_{0,0}a_{k}(t) + c_{1,0}b_{k}(t)}
+\end{displaymath} 
+which can be simplified to:
+\begin{displaymath} 
+    h(t)\left(c_{0,0}a_{k}(t) + c_{1,0}b_{k}(t)\right) = 
+        c_{0,0}a_{k+1}(t) + c_{1,0}b_{k+1}(t)
+\end{displaymath} 
+which holds if and only if:
+\begin{displaymath} 
+    h(t) a_{k}(t) = a_{k+1}(t) \quad \wedge \quad h(t) b_{k}(t) = b_{k+1}(t)
+\end{displaymath} 
+unfolding such relations we get, for a generic column $j$ and an integer $s\in\lbrace 0,\ldots,j\rbrace$:
+\begin{displaymath} 
+    a_{j}(t) = h(t)^{j-s} a_{s}(t) \quad \quad 
+    b_{j}(t) = h(t)^{j-s} b_{s}(t)
+\end{displaymath} 
+fixing $s=0$ we go down to the very first column:
+\begin{displaymath} 
+    a_{j}(t) = h(t)^{j} a_{0}(t) \quad \quad 
+    b_{j}(t) = h(t)^{j} b_{0}(t)
+\end{displaymath} 
+therefore there exists two Riordan arrays $\mathcal{C}_{a}$ and $\mathcal{C}_{b}$
+defined as follows:
+\begin{displaymath} 
+    \mathcal{C}_{a} = \left(a_{0}(t), h(t)\right) \quad \quad 
+    \mathcal{C}_{b} = \left(b_{0}(t), h(t)\right) \quad \quad 
+\end{displaymath} 
+such that:
+\begin{equation} 
+    \mathcal{C} = c_{0,0}\mathcal{C}_{a} + c_{1,0}\mathcal{C}_{b}
+    \label{eq:two:splitted:catalan:riordan:expansion}
+\end{equation} 
+From now on, we attach a super-script $^{(i)}$, for $i\in\lbrace 2,3\ldots\rbrace$, 
+to functions used in a sum expansion in order to be clear that such functions 
+refers to a matrix unfolding where $i$ variables are present. In the case above, 
+$a_{0}^{(2)}(t)$ and $b_{0}^{(2)}(t)$ denote the same functions as
+$a_{0}(t)$ and $b_{0}(t)$.
+
+
+Studying \autoref{eq:two:splitted:catalan:generic:column:relation}
+with $k=0$ we get:
+\begin{equation} 
+    d(t) = c_{0,0}a_{0}^{(2)}(t) + c_{1,0}b_{0}^{(2)}(t)
+\end{equation} 
+a look at \autoref{eq:standard:catalan} allows us to set both $c_{0,0}$ and $c_{1,0}$ to $1$,
+and looking at \autoref{eq:clean:two:splitted:catalan} it seems to be permitted to set 
+function $b_{0}^{(2)}(t)$ to $t\,d(t)$; therefore, 
+\begin{equation} 
+    d(t) = a_{0}^{(2)}(t) + t\,d(t) \rightarrow d(t)(1-t) = a_{0}^{(2)}(t)
+\end{equation} 
+holds. So \autoref{eq:two:splitted:catalan:riordan:expansion} can be rewritten as follows:
+\begin{displaymath} 
+    \mathcal{C}(d(t), h(t)) = \mathcal{C}_{a}(d(t)(1-t), h(t)) + \mathcal{C}_{b}(t\,d(t), h(t))
+\end{displaymath} 
+in expanded matrix notation:
+\begin{displaymath}
+\begin{array}{c}
+c_{1,0}\left[\begin{matrix}
+0 &  &  &  &  &  &  &  &  &  \\
+1 & 0 &  &  &  &  &  &  &  &  \\
+1 & 1 & 0 &  &  &  &  &  &  &  \\
+2 & 2 & 1 & 0 &  &  &  &  &  &  \\
+5 & 5 & 3 & 1 & 0 &  &  &  &  &  \\
+14 & 14 & 9 & 4 & 1 & 0 &  &  &  &  \\
+42 & 42 & 28 & 14 & 5 & 1 & 0 &  &  &  \\
+132 & 132 & 90 & 48 & 20 & 6 & 1 & 0 &  &  \\
+429 & 429 & 297 & 165 & 75 & 27 & 7 & 1 & 0 &  \\
+1430 & 1430 & 1001 & 572 & 275 & 110 & 35 & 8 & 1 & 0 \\
+\end{matrix}\right] +\\ 
+c_{0,0}\left[\begin{matrix}
+1 &  &  &  &  &  &  &  &  &  \\
+0 & 1 &  &  &  &  &  &  &  &  \\
+1 & 1 & 1 &  &  &  &  &  &  &  \\
+3 & 3 & 2 & 1 &  &  &  &  &  &  \\
+9 & 9 & 6 & 3 & 1 &  &  &  &  &  \\
+28 & 28 & 19 & 10 & 4 & 1 &  &  &  &  \\
+90 & 90 & 62 & 34 & 15 & 5 & 1 &  &  &  \\
+297 & 297 & 207 & 117 & 55 & 21 & 6 & 1 &  &  \\
+1001 & 1001 & 704 & 407 & 200 & 83 & 28 & 7 & 1 &  \\
+3432 & 3432 & 2431 & 1430 & 726 & 319 & 119 & 36 & 8 & 1 \\
+\end{matrix}\right]
+\label{eq:matrix:expansion:two:splitted:catalan}
+\end{array}
+\end{displaymath}
+
+
+\subsection{Three-way splitting}
+
+Now we're going to unfold matrix in \autoref{eq:purely:generic:catalan} starting from row $3$,
+aiming to rewrite that matrix such that it depends only on $c_{0,0}, c_{1,0}, c_{2,0}$.
+We can characterize the convolution for the generic column $k$ using three
+functions $a_{k}^{(3)}(t), b_{k}^{(3)}(t), c_{k}^{(3)}(t)$ as follows:
+\begin{equation} 
+    d(t)h(t)^{k} = c_{0,0}a_{k}^{(3)}(t) + c_{1,0}b_{k}^{(3)}(t) + c_{2,0}c_{k}^{(3)}(t)
+    \label{eq:three:splitted:catalan:generic:column:relation}
+\end{equation} 
+In the style of the argument shown in the previous section, we seek for:
+\begin{equation} 
+    \mathcal{C} = c_{0,0}\mathcal{C}_{a} + c_{1,0}\mathcal{C}_{b} + c_{2,0}\mathcal{C}_{c}
+    \label{eq:three:splitted:catalan:riordan:expansion}
+\end{equation} 
+where:
+\begin{displaymath} 
+    \mathcal{C}_{a} = \left(a_{0}^{(3)}(t), h(t)\right) \quad \quad 
+    \mathcal{C}_{b} = \left(b_{0}^{(3)}(t), h(t)\right) \quad \quad 
+    \mathcal{C}_{c} = \left(c_{0}^{(3)}(t), h(t)\right) \quad \quad 
+\end{displaymath} 
+Looking at \autoref{eq:clean:three:splitted:catalan} it seems that the following relations hold:
+\begin{displaymath} 
+    c_{0}^{(3)}(t) = t\,b_{0}^{(2)}(t) = t^{2}d(t) \quad \quad 
+    b_{0}^{(3)}(t) = t\,a_{0}^{(2)}(t) = t(1-t)d(t)
+\end{displaymath} 
+and \autoref{eq:standard:catalan} allows us to set $c_{2,0}$ to $2$. Sustituting in
+\autoref{eq:three:splitted:catalan:generic:column:relation}, with $k=0$, yields
+function $a_{0}^{(3)}(t)$:
+\begin{displaymath} 
+    d(t)\left(1 -t(1-t) -2t^{2}\right) = a_{0}^{(3)}(t)
+\end{displaymath} 
+so:
+\begin{displaymath} 
+    d(t)\left(1 -t -t^{2}\right) = a_{0}^{(3)}(t)
+\end{displaymath} 
+\begin{landscape}
+%\vskip-4cm
+\scriptsize
+\begin{equation}
+\left[\begin{matrix}
+\textcolor{blue}{c_{0,0}} &  &  &  &  &  &  &  &  &  \\
+\textcolor{blue}{c_{1,0}} & \textcolor{red}{c_{1,1}} &  &  &  &  &  &  &  &  \\
+\textcolor{blue}{c_{2,0}} & \textcolor{red}{c_{2,1}} & \textcolor{red}{c_{2,2}} &  &  &  &  &  &  &  \\
+c_{2,0} + c_{2,1} + c_{2,2} & c_{2,0} + c_{2,1} + c_{2,2} & c_{2,1} + c_{2,2} & c_{2,2} &  &  &  &  &  &  \\
+2 c_{2,0} + 3 c_{2,1} + 4 c_{2,2} & 2 c_{2,0} + 3 c_{2,1} + 4 c_{2,2} & c_{2,0} + 2 c_{2,1} + 3 c_{2,2} & c_{2,1} + 2 c_{2,2} & c_{2,2} &  &  &  &  &  \\
+5 c_{2,0} + 9 c_{2,1} + 14 c_{2,2} & 5 c_{2,0} + 9 c_{2,1} + 14 c_{2,2} & 3 c_{2,0} + 6 c_{2,1} + 10 c_{2,2} & c_{2,0} + 3 c_{2,1} + 6 c_{2,2} & c_{2,1} + 3 c_{2,2} & c_{2,2} &  &  &  &  \\
+14 c_{2,0} + 28 c_{2,1} + 48 c_{2,2} & 14 c_{2,0} + 28 c_{2,1} + 48 c_{2,2} & 9 c_{2,0} + 19 c_{2,1} + 34 c_{2,2} & 4 c_{2,0} + 10 c_{2,1} + 20 c_{2,2} & c_{2,0} + 4 c_{2,1} + 10 c_{2,2} & c_{2,1} + 4 c_{2,2} & c_{2,2} &  &  &  \\
+42 c_{2,0} + 90 c_{2,1} + 165 c_{2,2} & 42 c_{2,0} + 90 c_{2,1} + 165 c_{2,2} & 28 c_{2,0} + 62 c_{2,1} + 117 c_{2,2} & 14 c_{2,0} + 34 c_{2,1} + 69 c_{2,2} & 5 c_{2,0} + 15 c_{2,1} + 35 c_{2,2} & c_{2,0} + 5 c_{2,1} + 15 c_{2,2} & c_{2,1} + 5 c_{2,2} & c_{2,2} &  &  \\
+132 c_{2,0} + 297 c_{2,1} + 572 c_{2,2} & 132 c_{2,0} + 297 c_{2,1} + 572 c_{2,2} & 90 c_{2,0} + 207 c_{2,1} + 407 c_{2,2} & 48 c_{2,0} + 117 c_{2,1} + 242 c_{2,2} & 20 c_{2,0} + 55 c_{2,1} + 125 c_{2,2} & 6 c_{2,0} + 21 c_{2,1} + 56 c_{2,2} & c_{2,0} + 6 c_{2,1} + 21 c_{2,2} & c_{2,1} + 6 c_{2,2} & c_{2,2} &  \\
+429 c_{2,0} + 1001 c_{2,1} + 2002 c_{2,2} & 429 c_{2,0} + 1001 c_{2,1} + 2002 c_{2,2} & 297 c_{2,0} + 704 c_{2,1} + 1430 c_{2,2} & 165 c_{2,0} + 407 c_{2,1} + 858 c_{2,2} & 75 c_{2,0} + 200 c_{2,1} + 451 c_{2,2} & 27 c_{2,0} + 83 c_{2,1} + 209 c_{2,2} & 7 c_{2,0} + 28 c_{2,1} + 84 c_{2,2} & c_{2,0} + 7 c_{2,1} + 28 c_{2,2} & c_{2,1} + 7 c_{2,2} & c_{2,2} \\
+\end{matrix}\right]
+\label{eq:three:splitted:catalan}
+\end{equation}
+\begin{equation}
+\left[\begin{matrix}
+\textcolor{blue}{c_{0,0}} &  &  &  &  &  &  &  &  &  \\
+\textcolor{blue}{c_{1,0}} & c_{0,0} &  &  &  &  &  &  &  &  \\
+\textcolor{blue}{c_{2,0}} & c_{0,0} + c_{1,0} & c_{0,0} &  &  &  &  &  &  &  \\
+2 c_{0,0} + c_{1,0} + c_{2,0} & 2 c_{0,0} + c_{1,0} + c_{2,0} & 2 c_{0,0} + c_{1,0} & c_{0,0} &  &  &  &  &  &  \\
+7 c_{0,0} + 3 c_{1,0} + 2 c_{2,0} & 7 c_{0,0} + 3 c_{1,0} + 2 c_{2,0} & 5 c_{0,0} + 2 c_{1,0} + c_{2,0} & 3 c_{0,0} + c_{1,0} & c_{0,0} &  &  &  &  &  \\
+23 c_{0,0} + 9 c_{1,0} + 5 c_{2,0} & 23 c_{0,0} + 9 c_{1,0} + 5 c_{2,0} & 16 c_{0,0} + 6 c_{1,0} + 3 c_{2,0} & 9 c_{0,0} + 3 c_{1,0} + c_{2,0} & 4 c_{0,0} + c_{1,0} & c_{0,0} &  &  &  &  \\
+76 c_{0,0} + 28 c_{1,0} + 14 c_{2,0} & 76 c_{0,0} + 28 c_{1,0} + 14 c_{2,0} & 53 c_{0,0} + 19 c_{1,0} + 9 c_{2,0} & 30 c_{0,0} + 10 c_{1,0} + 4 c_{2,0} & 14 c_{0,0} + 4 c_{1,0} + c_{2,0} & 5 c_{0,0} + c_{1,0} & c_{0,0} &  &  &  \\
+255 c_{0,0} + 90 c_{1,0} + 42 c_{2,0} & 255 c_{0,0} + 90 c_{1,0} + 42 c_{2,0} & 179 c_{0,0} + 62 c_{1,0} + 28 c_{2,0} & 103 c_{0,0} + 34 c_{1,0} + 14 c_{2,0} & 50 c_{0,0} + 15 c_{1,0} + 5 c_{2,0} & 20 c_{0,0} + 5 c_{1,0} + c_{2,0} & 6 c_{0,0} + c_{1,0} & c_{0,0} &  &  \\
+869 c_{0,0} + 297 c_{1,0} + 132 c_{2,0} & 869 c_{0,0} + 297 c_{1,0} + 132 c_{2,0} & 614 c_{0,0} + 207 c_{1,0} + 90 c_{2,0} & 359 c_{0,0} + 117 c_{1,0} + 48 c_{2,0} & 180 c_{0,0} + 55 c_{1,0} + 20 c_{2,0} & 77 c_{0,0} + 21 c_{1,0} + 6 c_{2,0} & 27 c_{0,0} + 6 c_{1,0} + c_{2,0} & 7 c_{0,0} + c_{1,0} & c_{0,0} &  \\
+3003 c_{0,0} + 1001 c_{1,0} + 429 c_{2,0} & 3003 c_{0,0} + 1001 c_{1,0} + 429 c_{2,0} & 2134 c_{0,0} + 704 c_{1,0} + 297 c_{2,0} & 1265 c_{0,0} + 407 c_{1,0} + 165 c_{2,0} & 651 c_{0,0} + 200 c_{1,0} + 75 c_{2,0} & 292 c_{0,0} + 83 c_{1,0} + 27 c_{2,0} & 112 c_{0,0} + 28 c_{1,0} + 7 c_{2,0} & 35 c_{0,0} + 7 c_{1,0} + c_{2,0} & 8 c_{0,0} + c_{1,0} & c_{0,0} \\
+\end{matrix}\right]
+\label{eq:clean:three:splitted:catalan}
+\end{equation}
+\end{landscape}

@@ -3,6 +3,9 @@ from sympy import *
 from sympy.abc import x, n, z, t, k
 from sympy.core.cache import *
 from sympy.core.function import UndefinedFunction
+from sympy.printing.latex import latex
+
+import re
 
 from functools import reduce
 
@@ -358,7 +361,7 @@ def apply_factor_inside_matrix(matrix_spec, inits=None):
 def free_variables_in_matrix(matrix_spec, unfolding_rows):
     
     matrix, indexed_sym = matrix_spec
-    return set(indexed_sym[r,0] for r in range(unfolding_rows))
+    return set(matrix[r,0] for r in range(unfolding_rows))
     #variables = set()
     #for r in range(unfolding_rows):
         #variables.add(indexed_sym[r,0])
@@ -366,5 +369,43 @@ def free_variables_in_matrix(matrix_spec, unfolding_rows):
             ##variables.add(matrix[r,c])
     #return variables
 
+def clean_up_zeros(matrix_spec, label="", colors={}, environment="equation", cancel_zeros=True):
+    matrix, indexed_sym = matrix_spec
+    #tex_code = latex(matrix, mode="equation")
+    #p = re.compile(r'\begin{matrix}')
+    #tex_code = p.sub(r'\begin{matrix}'+"\n", tex_code)
+    #p = re.compile(r'\end{matrix}')
+    #tex_code = p.sub("\n"+r'\end{matrix}', tex_code)
+    #p = re.compile(r'\\')
+    #tex_code = p.sub(r'\\'+"\n", tex_code)
+    #p = re.compile(r'& 0 &')
+    #tex_code = p.sub( '&   &', tex_code)
+    tex_code = r"\begin{" + environment + r"}" + "\n" if environment else ""
+    tex_code += r"\left[\begin{matrix}" + "\n"
+    for r in range(matrix.rows):
+        for c in range(matrix.cols):
+            space = "\t" if c == 0 else " "
 
+            if r < c: coeff_str = ""
+            elif cancel_zeros: coeff_str = latex(matrix[r,c]) if matrix[r,c] != 0 else ""
+            else: coeff_str = latex(matrix[r,c])
+
+            if (r,c) in colors: coeff_str = r'\textcolor{' + colors[(r,c)] + r'}{' + coeff_str + "}"
+            tex_code += "{}{} {}".format(space, coeff_str, r'\\' if c == matrix.cols-1 else r'&') 
+
+        tex_code += "" if r == matrix.rows - 1 else "\n"
+
+    label = "\n{}".format(r'\label{eq:' + label + r'}' + "\n" if label else "")
+    tex_code += "\n" + r'\end{matrix}\right]' 
+    tex_code += label + r'\end{' + environment + '}' if environment else ""
+
+    return tex_code
+
+def latex_of_matrix_expansion(matrix_expansion, *args, **kwds):
+    tex_code = ""
+    add_code = " + "
+    for k,v in matrix_expansion.items():
+        tex_code += latex(k) + clean_up_zeros((v, None), *args, environment=None, **kwds)
+        tex_code += add_code
+    return tex_code[0:-len(add_code)]
 

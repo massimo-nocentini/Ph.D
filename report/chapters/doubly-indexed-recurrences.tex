@@ -250,7 +250,7 @@ so:
 \begin{displaymath} 
     d(t)\left(1 -t -t^{2}\right) = a_{0}^{(3)}(t)
 \end{displaymath} 
-therefore $\mathcal{C}$ factorization, using $3$ variables, can written as:
+therefore $\mathcal{C}$ factorization, using $3$ variables, can be written as:
 \begin{displaymath} 
     \mathcal{C} = 
         \left(\left(1 -t -t^{2}\right)d(t), h(t)\right) +
@@ -357,9 +357,9 @@ setting $k=0$ we can get rid of function $h$, looking for a factorization of fun
 where $\alpha_{0, j}^{(s)}(t) = t\,\alpha_{0, j-1}^{(s-1)}(t)$, for $j\in\lbrace 1,\ldots,s-1\rbrace$;
 the base case for the recursion is $\alpha_{0, 1}^{(2)}(t) = t\,d(t)$.
 
-In \autoref{eq:table:a:zero:zero:catalan}, \autoref{eq:table:a:zero:zero:catalan} and
+In \autoref{eq:table:a:zero:zero:pascal}, \autoref{eq:table:a:zero:zero:shapiro} and
 \autoref{eq:table:a:zero:zero:catalan}, we report three tables with schemata to compute
-$\alpha_{0,0}^{s}(t)$, for $s\in\lbrace 2, 3, 4, 5\rbrace$ relative to 
+$\alpha_{0,0}^{(s)}(t)$, for $s\in\lbrace 2, 3, 4, 5\rbrace$ relative to 
 Pascal triangle $\mathcal{P}$, Shapiro triangle $\mathcal{S}$ and, finally,
 Catalan triangle $\mathcal{C}$, respectively. Recall the \emph{fundamental}
 base case for the recursion $\alpha_{0,1}^{(2)}(t) = t\,d(t)$, then the following 
@@ -418,6 +418,7 @@ definitions for $d(t)$ functions and initial coefficients are used for each arra
     \label{eq:table:a:zero:zero:shapiro}
 \end{equation}
 
+% TODO: fix the following one, it is the same as the above one
 \begin{equation}
     %\hspace{-5cm}
     \begin{array}{ccc}

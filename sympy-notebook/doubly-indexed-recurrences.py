@@ -171,7 +171,7 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
                 inst_col_index = matched[col_wild]
                 coeff = matched[coeff_wild]
                 if inst_row_index in range(m.rows) and inst_col_index in range(m.cols):
-                    unfold_term += coeff * m[inst_row_index, inst_col_index]
+                    unfold_term = unfold_term + coeff * m[inst_row_index, inst_col_index]
 
             unfold_term = Poly(unfold_term, variables).args[0]
             m[r,c] = unfold_term

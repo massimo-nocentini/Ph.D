@@ -59,19 +59,20 @@ def make_generic_element(generic_term):
                     " are accepted to build abstract A-sequences.")
 
 def symbolic_matrix(dims, gen_coeff_symbol, inits={}, 
-                    lower=True, return_full_matrix_spec=True):
+                    lower=True, return_full_matrix_spec=True, diagonal_col_offset=None):
 
     ge = make_generic_element(gen_coeff_symbol)
     indexer = IndexingGenericElementVisitor(ge)
-    m = Matrix(*dims, lambda n,k: 0 if lower and n < k else indexer(n,k))
+    if diagonal_col_offset is None: diagonal_col_offset = 1
+    m = Matrix(*dims, lambda n,k: 0 if lower and n*diagonal_col_offset < k else indexer(n,k))
     for sym_coeff, v in inits.items(): m = Subs(m.subs(sym_coeff, v), sym_coeff, v)
     return (m, gen_coeff_symbol) if return_full_matrix_spec else m
 
-def make_lower_triangular(m_spec):
+def make_lower_triangular(m_spec, column_offset=1):
     m, generic_sym = m_spec
     m = m.copy()
     for r in range(m.rows):
-        for c in range(r+1, m.cols):
+        for c in range(r + column_offset, m.cols):
             m[r,c] = 0
     return m, generic_sym
             
@@ -134,7 +135,7 @@ def explode_term_respect_to(term, op_class, deep=False):
     
 
 def unfold_in_matrix(m_spec, Arec, Zrec=None,
-            unfold_row_start_index=1, unfolding_rows=None, unfolding_cols=None,
+            unfold_row_start_index=1, unfolding_rows=None, diagonal_col_offset=None,
             unfold_col_start_index=0, row_sym=Symbol('n'), col_sym=Symbol('k'),
             include_substitutions=False):
 
@@ -154,8 +155,8 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
         
         sequence = Aseq if unfold_col_start_index > 0 else Zseq
         
-        cols = r+1 if unfolding_cols is None else unfolding_cols
-        for c in range(unfold_col_start_index, cols):
+        cols = r * (1 if diagonal_col_offset is None else diagonal_col_offset)
+        for c in range(unfold_col_start_index, cols+1):
 
             instantiated_rec = sequence.instantiate((row_sym, r), (col_sym, c))
 
@@ -173,9 +174,10 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
                 if inst_row_index in range(m.rows) and inst_col_index in range(m.cols):
                     unfold_term = unfold_term + coeff * m[inst_row_index, inst_col_index]
 
-            unfold_term = Poly(unfold_term, variables).args[0]
-            m[r,c] = unfold_term
-            substitutions.update({indexed_sym[r,c] : unfold_term})
+            if c < m.cols: 
+                unfold_term = Poly(unfold_term, variables).args[0]
+                m[r,c] = unfold_term
+                substitutions.update({indexed_sym[r,c] : unfold_term})
 
             sequence = Aseq
 
@@ -183,14 +185,15 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
     return (m_spec, substitutions) if include_substitutions else m_spec
             
 def build_rec_from_gf(gf_spec, indexed_sym, 
-                      row_sym=Symbol('n'), col_sym=Symbol('k'), evaluate=False):
+                      row_sym=Symbol('n'), col_sym=Symbol('k'), left_offset=0, evaluate=False):
 
     gf, gf_var, n = gf_spec
     gf_series = gf.series(gf_var, n=n)
 
     #rhs = 0
     #for i in range(n): rhs += gf_series.coeff(gf_var, n=i) * indexed_sym[row_sym, col_sym + i]
-    summands = [gf_series.coeff(gf_var, n=i) * indexed_sym[row_sym, col_sym + i] for i in range(n)]
+    summands = [gf_series.coeff(gf_var, n=i) * indexed_sym[row_sym, col_sym + (i-left_offset)] 
+                    for i in range(n)]
     rhs = Add(*summands, evaluate=False).doit(deep=False)
         
     return Eq(indexed_sym[row_sym+1, col_sym+1], rhs)
@@ -225,9 +228,11 @@ def build_rec_from_A_sequence(A_sequence_spec, symbolic_row_index = Symbol('n')+
     A_sequence_gf, indeterminate, order = A_sequence_spec
     return build_rec_from_A_matrix({(symbolic_row_index-1) : (A_sequence, indeterminate)}, order)
 
-def extract_inner_matrices(m_spec, unfolding_rows):
+def extract_inner_matrices(m_spec, unfolding_rows, diagonal_col_offset=None):
 
     matrix, indexed_sym = m_spec
+    
+    if diagonal_col_offset is None: diagonal_col_offset = 1
 
     matrices = {}
 
@@ -243,7 +248,7 @@ def extract_inner_matrices(m_spec, unfolding_rows):
 
         def worker(r, c):
 
-            if r < c: return 0 
+            if r*diagonal_col_offset < c: return 0 
 
             wild_coeff = Wild("coeff")
             matched = nullable_matrix[r,c].match(wild_coeff*current_symbolic_element)
@@ -273,7 +278,7 @@ def check_matrix_expansion(m_spec, expansion, inits={}, perform_asserts=True):
     if eq == True: return True
 
     for r in range(m.rows):
-        for c in range(r+1):
+        for c in range(m.cols):
             v1 = eq.lhs[r, c].expand()
             v2 = eq.rhs[r, c].expand()
             if not (v1 == v2): 
@@ -303,23 +308,27 @@ def make_abstract_A_sequence(spec, inits={}):
 def factorize_matrix_as_matrices_sum(matrix_spec, length=None, perform_check=False, *args, **kwds):
     
     matrix = matrix_spec[0]
+
     if length is None: length = matrix.rows
 
     assert length <= matrix.rows, "It was required an expansion using {} matrices when" + \
         " the provided matrix had {} rows".format(length, matrix_spec[0].rows)
 
+    diagonal_col_offset = kwds['diagonal_col_offset'] if 'diagonal_col_offset' in kwds else None
+
     unfolded_matrix_spec = unfold_in_matrix(matrix_spec, *args, **kwds)
     splitted_matrix_spec = unfold_in_matrix(matrix_spec, *args, unfold_row_start_index=length, **kwds)
     clean_splitted_matrix_spec = unfold_upper_chunk(splitted_matrix_spec, *args, unfolding_rows=length, **kwds)
-    matrix_expansion = extract_inner_matrices(clean_splitted_matrix_spec, unfolding_rows=length)
+    matrix_expansion = extract_inner_matrices(clean_splitted_matrix_spec, length, diagonal_col_offset)
     inits_dependencies = entail_dependencies(unfolded_matrix_spec, unfolding_rows=length)
 
     if perform_check:
         should_be_true = check_matrix_expansion(unfolded_matrix_spec, matrix_expansion, inits_dependencies)
         assert should_be_true == True
 
-    return dict(unfolded=extract_inner_matrices(unfolded_matrix_spec, unfolding_rows=1), 
+    return dict(unfolded=extract_inner_matrices(unfolded_matrix_spec, 1, diagonal_col_offset), 
                 splitted=clean_splitted_matrix_spec[0],
+                dirty_splitted=splitted_matrix_spec[0],
                 expansion=matrix_expansion,
                 dependencies=inits_dependencies,
                 generic_symbol=unfolded_matrix_spec[1])

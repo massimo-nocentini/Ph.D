@@ -61,9 +61,14 @@ def make_generic_element(generic_term):
 def symbolic_matrix(dims, gen_coeff_symbol, inits={}, 
                     lower=True, return_full_matrix_spec=True, diagonal_col_offset=None):
 
+    if diagonal_col_offset is None: diagonal_col_offset = 1
+
+    rows, cols = dims
+    dims = rows, 1 + (cols-1) * diagonal_col_offset
+
     ge = make_generic_element(gen_coeff_symbol)
     indexer = IndexingGenericElementVisitor(ge)
-    if diagonal_col_offset is None: diagonal_col_offset = 1
+
     m = Matrix(*dims, lambda n,k: 0 if lower and n*diagonal_col_offset < k else indexer(n,k))
     for sym_coeff, v in inits.items(): m = Subs(m.subs(sym_coeff, v), sym_coeff, v)
     return (m, gen_coeff_symbol) if return_full_matrix_spec else m
@@ -147,6 +152,7 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
     Zseq = Aseq if Zrec is None else Zsequence(Zrec)
 
     if unfolding_rows is None: unfolding_rows = m.rows
+    if diagonal_col_offset is None: diagonal_col_offset = 1
 
     substitutions = {}
     variables = free_variables_in_matrix(m_spec, unfolding_rows)
@@ -155,8 +161,7 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
         
         sequence = Aseq if unfold_col_start_index > 0 else Zseq
         
-        cols = r * (1 if diagonal_col_offset is None else diagonal_col_offset)
-        for c in range(unfold_col_start_index, cols+1):
+        for c in range(unfold_col_start_index, r * diagonal_col_offset + 1):
 
             instantiated_rec = sequence.instantiate((row_sym, r), (col_sym, c))
 
@@ -167,10 +172,16 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
                 row_wild = Wild('n', exclude=[indexed_sym])
                 col_wild = Wild('k', exclude=[indexed_sym])
                 matched = summand.match(coeff_wild * indexed_sym[row_wild, col_wild])
-                if not matched or coeff_wild not in matched or row_wild not in matched or col_wild not in matched: continue
-                inst_row_index = matched[row_wild]
-                inst_col_index = matched[col_wild]
+
+                if  not matched or \
+                    coeff_wild not in matched or \
+                    row_wild not in matched or \
+                    col_wild not in matched: 
+                    continue
+
+                inst_row_index, inst_col_index = matched[row_wild], matched[col_wild]
                 coeff = matched[coeff_wild]
+
                 if inst_row_index in range(m.rows) and inst_col_index in range(m.cols):
                     unfold_term = unfold_term + coeff * m[inst_row_index, inst_col_index]
 
@@ -390,13 +401,14 @@ def clean_up_zeros(matrix_spec, label="", colors={}, environment="equation", can
     #p = re.compile(r'& 0 &')
     #tex_code = p.sub( '&   &', tex_code)
     tex_code = r"\begin{" + environment + r"}" + "\n" if environment else ""
-    tex_code += r"\left[\begin{matrix}" + "\n"
+    tex_code += r"\left[\begin{array}{" + ('c' * matrix.cols) + r'}' + "\n"
     for r in range(matrix.rows):
         for c in range(matrix.cols):
-            space = "\t" if c == 0 else " "
+            
+            space = "" if c == 0 else " "
 
-            if r < c: coeff_str = ""
-            elif cancel_zeros: coeff_str = latex(matrix[r,c]) if matrix[r,c] != 0 else ""
+            #if r < c: coeff_str = ""
+            if cancel_zeros: coeff_str = latex(matrix[r,c]) if matrix[r,c] != 0 else ""
             else: coeff_str = latex(matrix[r,c])
 
             if (r,c) in colors: coeff_str = r'\textcolor{' + colors[(r,c)] + r'}{' + coeff_str + "}"
@@ -405,7 +417,7 @@ def clean_up_zeros(matrix_spec, label="", colors={}, environment="equation", can
         tex_code += "" if r == matrix.rows - 1 else "\n"
 
     label = "\n{}".format(r'\label{eq:' + label + r'}' + "\n" if label else "")
-    tex_code += "\n" + r'\end{matrix}\right]' 
+    tex_code += "\n" + r'\end{array}\right]' 
     tex_code += label + r'\end{' + environment + '}' if environment else ""
 
     return tex_code

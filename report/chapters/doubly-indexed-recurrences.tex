@@ -437,9 +437,32 @@ definitions for $d(t)$ functions and initial coefficients are used for each arra
 
 \end{sidewaystable}
 
+\section{A strechted Pascal-like array}
 
+In this section we study a streched version of Pascal-like arrays, 
+splitting a matrix in $2$ and $3$ variables respectively. The 
+following is the used recurrence to do unfoldings:
+\begin{displaymath}
+    m_{n + 1,k + 1} = m_{n,k} + m_{n,k - 1}
+\end{displaymath}
 
-
+In \autoref{eq:stretched:pascal:like} we report the unfolding starting
+at row $1$.
+\begin{equation}
+m_{0,0}\left[\begin{array}{ccccccccccccccccccc}
+1 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+1 & 1 & 1 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+1 & 1 & 2 & 2 & 1 &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+1 & 1 & 2 & 3 & 4 & 3 & 1 &  &  &  &  &  &  &  &  &  &  &  &  \\
+1 & 1 & 2 & 3 & 5 & 7 & 7 & 4 & 1 &  &  &  &  &  &  &  &  &  &  \\
+1 & 1 & 2 & 3 & 5 & 8 & 12 & 14 & 11 & 5 & 1 &  &  &  &  &  &  &  &  \\
+1 & 1 & 2 & 3 & 5 & 8 & 13 & 20 & 26 & 25 & 16 & 6 & 1 &  &  &  &  &  &  \\
+1 & 1 & 2 & 3 & 5 & 8 & 13 & 21 & 33 & 46 & 51 & 41 & 22 & 7 & 1 &  &  &  &  \\
+1 & 1 & 2 & 3 & 5 & 8 & 13 & 21 & 34 & 54 & 79 & 97 & 92 & 63 & 29 & 8 & 1 &  &  \\
+1 & 1 & 2 & 3 & 5 & 8 & 13 & 21 & 34 & 55 & 88 & 133 & 176 & 189 & 155 & 92 & 37 & 9 & 1 \\
+\end{array}\right]
+\label{eq:stretched:pascal:like}
+\end{equation}
 
 
 

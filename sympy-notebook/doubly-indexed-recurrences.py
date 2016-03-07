@@ -389,26 +389,22 @@ def free_variables_in_matrix(matrix_spec, unfolding_rows):
             ##variables.add(matrix[r,c])
     #return variables
 
-def clean_up_zeros(matrix_spec, label="", colors={}, environment="equation", cancel_zeros=True):
+def clean_up_zeros(matrix_spec, label="", colors={}, 
+                    environment="equation", cancel_zeros=True, diagonal_col_offset=None):
+
     matrix, indexed_sym = matrix_spec
-    #tex_code = latex(matrix, mode="equation")
-    #p = re.compile(r'\begin{matrix}')
-    #tex_code = p.sub(r'\begin{matrix}'+"\n", tex_code)
-    #p = re.compile(r'\end{matrix}')
-    #tex_code = p.sub("\n"+r'\end{matrix}', tex_code)
-    #p = re.compile(r'\\')
-    #tex_code = p.sub(r'\\'+"\n", tex_code)
-    #p = re.compile(r'& 0 &')
-    #tex_code = p.sub( '&   &', tex_code)
+    if diagonal_col_offset is None: diagonal_col_offset = 1
+
     tex_code = r"\begin{" + environment + r"}" + "\n" if environment else ""
     tex_code += r"\left[\begin{array}{" + ('c' * matrix.cols) + r'}' + "\n"
+
     for r in range(matrix.rows):
         for c in range(matrix.cols):
             
             space = "" if c == 0 else " "
 
-            #if r < c: coeff_str = ""
-            if cancel_zeros: coeff_str = latex(matrix[r,c]) if matrix[r,c] != 0 else ""
+            if r*diagonal_col_offset < c: coeff_str = ""
+            elif cancel_zeros: coeff_str = latex(matrix[r,c]) if matrix[r,c] != 0 else ""
             else: coeff_str = latex(matrix[r,c])
 
             if (r,c) in colors: coeff_str = r'\textcolor{' + colors[(r,c)] + r'}{' + coeff_str + "}"

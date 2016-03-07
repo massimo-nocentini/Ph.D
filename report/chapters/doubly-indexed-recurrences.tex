@@ -437,17 +437,22 @@ definitions for $d(t)$ functions and initial coefficients are used for each arra
 
 \end{sidewaystable}
 
-\section{A strechted Pascal-like array}
+\section{An horizontally stretched Pascal-like array}
 
 In this section we study a streched version of Pascal-like arrays, 
 splitting a matrix in $2$ and $3$ variables respectively. The 
 following is the used recurrence to do unfoldings:
 \begin{displaymath}
-    m_{n + 1,k + 1} = m_{n,k} + m_{n,k - 1}
+    m_{n + 1,k + 1} =  m_{n,k - 1} + m_{n,k}
 \end{displaymath}
 
-In \autoref{eq:stretched:pascal:like} we report the unfolding starting
-at row $1$.
+In \autoref{eq:stretched:pascal:like} we report the unfolding starting at row $1$;
+moreover, in \autoref{eq:stretched:pascal:like:two:splitted} and 
+\autoref{eq:stretched:pascal:like:two:splitted:matrix:expansion} we report the same array splitted 
+using two variables and the corresponding matrix expansion as summation, respectively.
+In parallel, \autoref{eq:stretched:pascal:like:three:splitted} and 
+\autoref{eq:stretched:pascal:like:three:splitted:matrix:expansion} show the
+same triangle splitted respect to $3$ variables.
 \begin{equation}
 m_{0,0}\left[\begin{array}{ccccccccccccccccccc}
 1 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
@@ -465,7 +470,171 @@ m_{0,0}\left[\begin{array}{ccccccccccccccccccc}
 \end{equation}
 
 
+\begin{sidewaystable}
+\scriptsize
+\begin{equation}
+\left[\begin{array}{ccccccccccccccccccc}
+\textcolor{blue}{m_{0,0}} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+\textcolor{blue}{m_{1,0}} & m_{0,0} & m_{0,0} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+m_{1,0} & m_{1,0} & m_{0,0} + m_{1,0} & 2 m_{0,0} & m_{0,0} &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+m_{1,0} & m_{1,0} & 2 m_{1,0} & m_{0,0} + 2 m_{1,0} & 3 m_{0,0} + m_{1,0} & 3 m_{0,0} & m_{0,0} &  &  &  &  &  &  &  &  &  &  &  &  \\
+m_{1,0} & m_{1,0} & 2 m_{1,0} & 3 m_{1,0} & m_{0,0} + 4 m_{1,0} & 4 m_{0,0} + 3 m_{1,0} & 6 m_{0,0} + m_{1,0} & 4 m_{0,0} & m_{0,0} &  &  &  &  &  &  &  &  &  &  \\
+m_{1,0} & m_{1,0} & 2 m_{1,0} & 3 m_{1,0} & 5 m_{1,0} & m_{0,0} + 7 m_{1,0} & 5 m_{0,0} + 7 m_{1,0} & 10 m_{0,0} + 4 m_{1,0} & 10 m_{0,0} + m_{1,0} & 5 m_{0,0} & m_{0,0} &  &  &  &  &  &  &  &  \\
+m_{1,0} & m_{1,0} & 2 m_{1,0} & 3 m_{1,0} & 5 m_{1,0} & 8 m_{1,0} & m_{0,0} + 12 m_{1,0} & 6 m_{0,0} + 14 m_{1,0} & 15 m_{0,0} + 11 m_{1,0} & 20 m_{0,0} + 5 m_{1,0} & 15 m_{0,0} + m_{1,0} & 6 m_{0,0} & m_{0,0} &  &  &  &  &  &  \\
+m_{1,0} & m_{1,0} & 2 m_{1,0} & 3 m_{1,0} & 5 m_{1,0} & 8 m_{1,0} & 13 m_{1,0} & m_{0,0} + 20 m_{1,0} & 7 m_{0,0} + 26 m_{1,0} & 21 m_{0,0} + 25 m_{1,0} & 35 m_{0,0} + 16 m_{1,0} & 35 m_{0,0} + 6 m_{1,0} & 21 m_{0,0} + m_{1,0} & 7 m_{0,0} & m_{0,0} &  &  &  &  \\
+m_{1,0} & m_{1,0} & 2 m_{1,0} & 3 m_{1,0} & 5 m_{1,0} & 8 m_{1,0} & 13 m_{1,0} & 21 m_{1,0} & m_{0,0} + 33 m_{1,0} & 8 m_{0,0} + 46 m_{1,0} & 28 m_{0,0} + 51 m_{1,0} & 56 m_{0,0} + 41 m_{1,0} & 70 m_{0,0} + 22 m_{1,0} & 56 m_{0,0} + 7 m_{1,0} & 28 m_{0,0} + m_{1,0} & 8 m_{0,0} & m_{0,0} &  &  \\
+m_{1,0} & m_{1,0} & 2 m_{1,0} & 3 m_{1,0} & 5 m_{1,0} & 8 m_{1,0} & 13 m_{1,0} & 21 m_{1,0} & 34 m_{1,0} & m_{0,0} + 54 m_{1,0} & 9 m_{0,0} + 79 m_{1,0} & 36 m_{0,0} + 97 m_{1,0} & 84 m_{0,0} + 92 m_{1,0} & 126 m_{0,0} + 63 m_{1,0} & 126 m_{0,0} + 29 m_{1,0} & 84 m_{0,0} + 8 m_{1,0} & 36 m_{0,0} + m_{1,0} & 9 m_{0,0} & m_{0,0} \\
+\end{array}\right]
+\label{eq:stretched:pascal:like:two:splitted}
+\end{equation}
+\begin{equation}
+m_{0,0}\left[\begin{array}{ccccccccccccccccccc}
+1 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+0 & 1 & 1 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+0 & 0 & 1 & 2 & 1 &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+0 & 0 & 0 & 1 & 3 & 3 & 1 &  &  &  &  &  &  &  &  &  &  &  &  \\
+0 & 0 & 0 & 0 & 1 & 4 & 6 & 4 & 1 &  &  &  &  &  &  &  &  &  &  \\
+0 & 0 & 0 & 0 & 0 & 1 & 5 & 10 & 10 & 5 & 1 &  &  &  &  &  &  &  &  \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 6 & 15 & 20 & 15 & 6 & 1 &  &  &  &  &  &  \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 7 & 21 & 35 & 35 & 21 & 7 & 1 &  &  &  &  \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 8 & 28 & 56 & 70 & 56 & 28 & 8 & 1 &  &  \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 9 & 36 & 84 & 126 & 126 & 84 & 36 & 9 & 1 \\
+\end{array}\right] + m_{1,0}\left[\begin{array}{ccccccccccccccccccc}
+0 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+1 & 0 & 0 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+1 & 1 & 1 & 0 & 0 &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+1 & 1 & 2 & 2 & 1 & 0 & 0 &  &  &  &  &  &  &  &  &  &  &  &  \\
+1 & 1 & 2 & 3 & 4 & 3 & 1 & 0 & 0 &  &  &  &  &  &  &  &  &  &  \\
+1 & 1 & 2 & 3 & 5 & 7 & 7 & 4 & 1 & 0 & 0 &  &  &  &  &  &  &  &  \\
+1 & 1 & 2 & 3 & 5 & 8 & 12 & 14 & 11 & 5 & 1 & 0 & 0 &  &  &  &  &  &  \\
+1 & 1 & 2 & 3 & 5 & 8 & 13 & 20 & 26 & 25 & 16 & 6 & 1 & 0 & 0 &  &  &  &  \\
+1 & 1 & 2 & 3 & 5 & 8 & 13 & 21 & 33 & 46 & 51 & 41 & 22 & 7 & 1 & 0 & 0 &  &  \\
+1 & 1 & 2 & 3 & 5 & 8 & 13 & 21 & 34 & 54 & 79 & 97 & 92 & 63 & 29 & 8 & 1 & 0 & 0 \\
+\end{array}\right]
+\label{eq:stretched:pascal:like:two:splitted:matrix:expansion}
+\end{equation}
+\end{sidewaystable}
 
+\begin{sidewaystable}
+\scriptsize
+\begin{equation}
+\left[\begin{array}{ccccccccccccccccccc}
+\textcolor{blue}{m_{0,0}} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+\textcolor{blue}{m_{1,0}} & m_{0,0} & m_{0,0} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+\textcolor{blue}{m_{2,0}} & m_{1,0} & m_{0,0} + m_{1,0} & 2 m_{0,0} & m_{0,0} &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+m_{2,0} & m_{2,0} & m_{1,0} + m_{2,0} & m_{0,0} + 2 m_{1,0} & 3 m_{0,0} + m_{1,0} & 3 m_{0,0} & m_{0,0} &  &  &  &  &  &  &  &  &  &  &  &  \\
+m_{2,0} & m_{2,0} & 2 m_{2,0} & m_{1,0} + 2 m_{2,0} & m_{0,0} + 3 m_{1,0} + m_{2,0} & 4 m_{0,0} + 3 m_{1,0} & 6 m_{0,0} + m_{1,0} & 4 m_{0,0} & m_{0,0} &  &  &  &  &  &  &  &  &  &  \\
+m_{2,0} & m_{2,0} & 2 m_{2,0} & 3 m_{2,0} & m_{1,0} + 4 m_{2,0} & m_{0,0} + 4 m_{1,0} + 3 m_{2,0} & 5 m_{0,0} + 6 m_{1,0} + m_{2,0} & 10 m_{0,0} + 4 m_{1,0} & 10 m_{0,0} + m_{1,0} & 5 m_{0,0} & m_{0,0} &  &  &  &  &  &  &  &  \\
+m_{2,0} & m_{2,0} & 2 m_{2,0} & 3 m_{2,0} & 5 m_{2,0} & m_{1,0} + 7 m_{2,0} & m_{0,0} + 5 m_{1,0} + 7 m_{2,0} & 6 m_{0,0} + 10 m_{1,0} + 4 m_{2,0} & 15 m_{0,0} + 10 m_{1,0} + m_{2,0} & 20 m_{0,0} + 5 m_{1,0} & 15 m_{0,0} + m_{1,0} & 6 m_{0,0} & m_{0,0} &  &  &  &  &  &  \\
+m_{2,0} & m_{2,0} & 2 m_{2,0} & 3 m_{2,0} & 5 m_{2,0} & 8 m_{2,0} & m_{1,0} + 12 m_{2,0} & m_{0,0} + 6 m_{1,0} + 14 m_{2,0} & 7 m_{0,0} + 15 m_{1,0} + 11 m_{2,0} & 21 m_{0,0} + 20 m_{1,0} + 5 m_{2,0} & 35 m_{0,0} + 15 m_{1,0} + m_{2,0} & 35 m_{0,0} + 6 m_{1,0} & 21 m_{0,0} + m_{1,0} & 7 m_{0,0} & m_{0,0} &  &  &  &  \\
+m_{2,0} & m_{2,0} & 2 m_{2,0} & 3 m_{2,0} & 5 m_{2,0} & 8 m_{2,0} & 13 m_{2,0} & m_{1,0} + 20 m_{2,0} & m_{0,0} + 7 m_{1,0} + 26 m_{2,0} & 8 m_{0,0} + 21 m_{1,0} + 25 m_{2,0} & 28 m_{0,0} + 35 m_{1,0} + 16 m_{2,0} & 56 m_{0,0} + 35 m_{1,0} + 6 m_{2,0} & 70 m_{0,0} + 21 m_{1,0} + m_{2,0} & 56 m_{0,0} + 7 m_{1,0} & 28 m_{0,0} + m_{1,0} & 8 m_{0,0} & m_{0,0} &  &  \\
+m_{2,0} & m_{2,0} & 2 m_{2,0} & 3 m_{2,0} & 5 m_{2,0} & 8 m_{2,0} & 13 m_{2,0} & 21 m_{2,0} & m_{1,0} + 33 m_{2,0} & m_{0,0} + 8 m_{1,0} + 46 m_{2,0} & 9 m_{0,0} + 28 m_{1,0} + 51 m_{2,0} & 36 m_{0,0} + 56 m_{1,0} + 41 m_{2,0} & 84 m_{0,0} + 70 m_{1,0} + 22 m_{2,0} & 126 m_{0,0} + 56 m_{1,0} + 7 m_{2,0} & 126 m_{0,0} + 28 m_{1,0} + m_{2,0} & 84 m_{0,0} + 8 m_{1,0} & 36 m_{0,0} + m_{1,0} & 9 m_{0,0} & m_{0,0} \\
+\end{array}\right]
+\label{eq:stretched:pascal:like:three:splitted}
+\end{equation}
+\begin{equation}
+\begin{split}
+& m_{0,0}\left[\begin{array}{ccccccccccccccccccc}
+1 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+0 & 1 & 1 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+0 & 0 & 1 & 2 & 1 &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+0 & 0 & 0 & 1 & 3 & 3 & 1 &  &  &  &  &  &  &  &  &  &  &  &  \\
+0 & 0 & 0 & 0 & 1 & 4 & 6 & 4 & 1 &  &  &  &  &  &  &  &  &  &  \\
+0 & 0 & 0 & 0 & 0 & 1 & 5 & 10 & 10 & 5 & 1 &  &  &  &  &  &  &  &  \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 6 & 15 & 20 & 15 & 6 & 1 &  &  &  &  &  &  \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 7 & 21 & 35 & 35 & 21 & 7 & 1 &  &  &  &  \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 8 & 28 & 56 & 70 & 56 & 28 & 8 & 1 &  &  \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 9 & 36 & 84 & 126 & 126 & 84 & 36 & 9 & 1 \\
+\end{array}\right] + m_{1,0}\left[\begin{array}{ccccccccccccccccccc}
+0 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+1 & 0 & 0 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+0 & 1 & 1 & 0 & 0 &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+0 & 0 & 1 & 2 & 1 & 0 & 0 &  &  &  &  &  &  &  &  &  &  &  &  \\
+0 & 0 & 0 & 1 & 3 & 3 & 1 & 0 & 0 &  &  &  &  &  &  &  &  &  &  \\
+0 & 0 & 0 & 0 & 1 & 4 & 6 & 4 & 1 & 0 & 0 &  &  &  &  &  &  &  &  \\
+0 & 0 & 0 & 0 & 0 & 1 & 5 & 10 & 10 & 5 & 1 & 0 & 0 &  &  &  &  &  &  \\
+0 & 0 & 0 & 0 & 0 & 0 & 1 & 6 & 15 & 20 & 15 & 6 & 1 & 0 & 0 &  &  &  &  \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 7 & 21 & 35 & 35 & 21 & 7 & 1 & 0 & 0 &  &  \\
+0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 8 & 28 & 56 & 70 & 56 & 28 & 8 & 1 & 0 & 0 \\
+\end{array}\right] +\\
+& m_{2,0}\left[\begin{array}{ccccccccccccccccccc}
+0 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+0 & 0 & 0 &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+1 & 0 & 0 & 0 & 0 &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+1 & 1 & 1 & 0 & 0 & 0 & 0 &  &  &  &  &  &  &  &  &  &  &  &  \\
+1 & 1 & 2 & 2 & 1 & 0 & 0 & 0 & 0 &  &  &  &  &  &  &  &  &  &  \\
+1 & 1 & 2 & 3 & 4 & 3 & 1 & 0 & 0 & 0 & 0 &  &  &  &  &  &  &  &  \\
+1 & 1 & 2 & 3 & 5 & 7 & 7 & 4 & 1 & 0 & 0 & 0 & 0 &  &  &  &  &  &  \\
+1 & 1 & 2 & 3 & 5 & 8 & 12 & 14 & 11 & 5 & 1 & 0 & 0 & 0 & 0 &  &  &  &  \\
+1 & 1 & 2 & 3 & 5 & 8 & 13 & 20 & 26 & 25 & 16 & 6 & 1 & 0 & 0 & 0 & 0 &  &  \\
+1 & 1 & 2 & 3 & 5 & 8 & 13 & 21 & 33 & 46 & 51 & 41 & 22 & 7 & 1 & 0 & 0 & 0 & 0 \\
+\end{array}\right] 
+\label{eq:stretched:pascal:like:three:splitted:matrix:expansion}
+\end{split}
+\end{equation}
+\end{sidewaystable}
 
+%\section{Abstract $A$-sequence for renewal arrays}
+
+\begin{sidewaystable}
+\scriptsize
+\begin{equation}
+m_{0,0}\left[\begin{array}{cccccccccc}
+1 &  &  &  &  &  &  &  &  &  \\
+\beta & \alpha &  &  &  &  &  &  &  &  \\
+\alpha \gamma + \beta^{2} & 2 \alpha \beta & \alpha^{2} &  &  &  &  &  &  &  \\
+3 \alpha \beta \gamma + \beta^{3} & 2 \alpha^{2} \gamma + 3 \alpha \beta^{2} & 3 \alpha^{2} \beta & \alpha^{3} &  &  &  &  &  &  \\
+2 \alpha^{2} \gamma^{2} + 6 \alpha \beta^{2} \gamma + \beta^{4} & 8 \alpha^{2} \beta \gamma + 4 \alpha \beta^{3} & 3 \alpha^{3} \gamma + 6 \alpha^{2} \beta^{2} & 4 \alpha^{3} \beta & \alpha^{4} &  &  &  &  &  \\
+10 \alpha^{2} \beta \gamma^{2} + 10 \alpha \beta^{3} \gamma + \beta^{5} & 5 \alpha^{3} \gamma^{2} + 20 \alpha^{2} \beta^{2} \gamma + 5 \alpha \beta^{4} & 15 \alpha^{3} \beta \gamma + 10 \alpha^{2} \beta^{3} & 4 \alpha^{4} \gamma + 10 \alpha^{3} \beta^{2} & 5 \alpha^{4} \beta & \alpha^{5} &  &  &  &  \\
+5 \alpha^{3} \gamma^{3} + 30 \alpha^{2} \beta^{2} \gamma^{2} + 15 \alpha \beta^{4} \gamma + \beta^{6} & 30 \alpha^{3} \beta \gamma^{2} + 40 \alpha^{2} \beta^{3} \gamma + 6 \alpha \beta^{5} & 9 \alpha^{4} \gamma^{2} + 45 \alpha^{3} \beta^{2} \gamma + 15 \alpha^{2} \beta^{4} & 24 \alpha^{4} \beta \gamma + 20 \alpha^{3} \beta^{3} & 5 \alpha^{5} \gamma + 15 \alpha^{4} \beta^{2} & 6 \alpha^{5} \beta & \alpha^{6} &  &  &  \\
+35 \alpha^{3} \beta \gamma^{3} + 70 \alpha^{2} \beta^{3} \gamma^{2} + 21 \alpha \beta^{5} \gamma + \beta^{7} & 14 \alpha^{4} \gamma^{3} + 105 \alpha^{3} \beta^{2} \gamma^{2} + 70 \alpha^{2} \beta^{4} \gamma + 7 \alpha \beta^{6} & 63 \alpha^{4} \beta \gamma^{2} + 105 \alpha^{3} \beta^{3} \gamma + 21 \alpha^{2} \beta^{5} & 14 \alpha^{5} \gamma^{2} + 84 \alpha^{4} \beta^{2} \gamma + 35 \alpha^{3} \beta^{4} & 35 \alpha^{5} \beta \gamma + 35 \alpha^{4} \beta^{3} & 6 \alpha^{6} \gamma + 21 \alpha^{5} \beta^{2} & 7 \alpha^{6} \beta & \alpha^{7} &  &  \\
+14 \alpha^{4} \gamma^{4} + 140 \alpha^{3} \beta^{2} \gamma^{3} + 140 \alpha^{2} \beta^{4} \gamma^{2} + 28 \alpha \beta^{6} \gamma + \beta^{8} & 112 \alpha^{4} \beta \gamma^{3} + 280 \alpha^{3} \beta^{3} \gamma^{2} + 112 \alpha^{2} \beta^{5} \gamma + 8 \alpha \beta^{7} & 28 \alpha^{5} \gamma^{3} + 252 \alpha^{4} \beta^{2} \gamma^{2} + 210 \alpha^{3} \beta^{4} \gamma + 28 \alpha^{2} \beta^{6} & 112 \alpha^{5} \beta \gamma^{2} + 224 \alpha^{4} \beta^{3} \gamma + 56 \alpha^{3} \beta^{5} & 20 \alpha^{6} \gamma^{2} + 140 \alpha^{5} \beta^{2} \gamma + 70 \alpha^{4} \beta^{4} & 48 \alpha^{6} \beta \gamma + 56 \alpha^{5} \beta^{3} & 7 \alpha^{7} \gamma + 28 \alpha^{6} \beta^{2} & 8 \alpha^{7} \beta & \alpha^{8} &  \\
+126 \alpha^{4} \beta \gamma^{4} + 420 \alpha^{3} \beta^{3} \gamma^{3} + 252 \alpha^{2} \beta^{5} \gamma^{2} + 36 \alpha \beta^{7} \gamma + \beta^{9} & 42 \alpha^{5} \gamma^{4} + 504 \alpha^{4} \beta^{2} \gamma^{3} + 630 \alpha^{3} \beta^{4} \gamma^{2} + 168 \alpha^{2} \beta^{6} \gamma + 9 \alpha \beta^{8} & 252 \alpha^{5} \beta \gamma^{3} + 756 \alpha^{4} \beta^{3} \gamma^{2} + 378 \alpha^{3} \beta^{5} \gamma + 36 \alpha^{2} \beta^{7} & 48 \alpha^{6} \gamma^{3} + 504 \alpha^{5} \beta^{2} \gamma^{2} + 504 \alpha^{4} \beta^{4} \gamma + 84 \alpha^{3} \beta^{6} & 180 \alpha^{6} \beta \gamma^{2} + 420 \alpha^{5} \beta^{3} \gamma + 126 \alpha^{4} \beta^{5} & 27 \alpha^{7} \gamma^{2} + 216 \alpha^{6} \beta^{2} \gamma + 126 \alpha^{5} \beta^{4} & 63 \alpha^{7} \beta \gamma + 84 \alpha^{6} \beta^{3} & 8 \alpha^{8} \gamma + 36 \alpha^{7} \beta^{2} & 9 \alpha^{8} \beta & \alpha^{9} \\
+\end{array}\right]
+\end{equation}
+\begin{equation}
+\left[\begin{array}{cccccccccc}
+\textcolor{blue}{m_{0,0}} &  &  &  &  &  &  &  &  &  \\
+\textcolor{blue}{m_{1,0}} & \alpha m_{0,0} &  &  &  &  &  &  &  &  \\
+\alpha \gamma m_{0,0} + \beta m_{1,0} & \alpha \beta m_{0,0} + \alpha m_{1,0} & \alpha^{2} m_{0,0} &  &  &  &  &  &  &  \\
+2 \alpha \beta \gamma m_{0,0} + \left(\alpha \gamma + \beta^{2}\right) m_{1,0} & 2 \alpha \beta m_{1,0} + \left(2 \alpha^{2} \gamma + \alpha \beta^{2}\right) m_{0,0} & 2 \alpha^{2} \beta m_{0,0} + \alpha^{2} m_{1,0} & \alpha^{3} m_{0,0} &  &  &  &  &  &  \\
+\left(2 \alpha^{2} \gamma^{2} + 3 \alpha \beta^{2} \gamma\right) m_{0,0} + \left(3 \alpha \beta \gamma + \beta^{3}\right) m_{1,0} & \left(2 \alpha^{2} \gamma + 3 \alpha \beta^{2}\right) m_{1,0} + \left(6 \alpha^{2} \beta \gamma + \alpha \beta^{3}\right) m_{0,0} & 3 \alpha^{2} \beta m_{1,0} + \left(3 \alpha^{3} \gamma + 3 \alpha^{2} \beta^{2}\right) m_{0,0} & 3 \alpha^{3} \beta m_{0,0} + \alpha^{3} m_{1,0} & \alpha^{4} m_{0,0} &  &  &  &  &  \\
+\left(8 \alpha^{2} \beta \gamma^{2} + 4 \alpha \beta^{3} \gamma\right) m_{0,0} + \left(2 \alpha^{2} \gamma^{2} + 6 \alpha \beta^{2} \gamma + \beta^{4}\right) m_{1,0} & \left(8 \alpha^{2} \beta \gamma + 4 \alpha \beta^{3}\right) m_{1,0} + \left(5 \alpha^{3} \gamma^{2} + 12 \alpha^{2} \beta^{2} \gamma + \alpha \beta^{4}\right) m_{0,0} & \left(3 \alpha^{3} \gamma + 6 \alpha^{2} \beta^{2}\right) m_{1,0} + \left(12 \alpha^{3} \beta \gamma + 4 \alpha^{2} \beta^{3}\right) m_{0,0} & 4 \alpha^{3} \beta m_{1,0} + \left(4 \alpha^{4} \gamma + 6 \alpha^{3} \beta^{2}\right) m_{0,0} & 4 \alpha^{4} \beta m_{0,0} + \alpha^{4} m_{1,0} & \alpha^{5} m_{0,0} &  &  &  &  \\
+\left(5 \alpha^{3} \gamma^{3} + 20 \alpha^{2} \beta^{2} \gamma^{2} + 5 \alpha \beta^{4} \gamma\right) m_{0,0} + \left(10 \alpha^{2} \beta \gamma^{2} + 10 \alpha \beta^{3} \gamma + \beta^{5}\right) m_{1,0} & \left(5 \alpha^{3} \gamma^{2} + 20 \alpha^{2} \beta^{2} \gamma + 5 \alpha \beta^{4}\right) m_{1,0} + \left(25 \alpha^{3} \beta \gamma^{2} + 20 \alpha^{2} \beta^{3} \gamma + \alpha \beta^{5}\right) m_{0,0} & \left(15 \alpha^{3} \beta \gamma + 10 \alpha^{2} \beta^{3}\right) m_{1,0} + \left(9 \alpha^{4} \gamma^{2} + 30 \alpha^{3} \beta^{2} \gamma + 5 \alpha^{2} \beta^{4}\right) m_{0,0} & \left(4 \alpha^{4} \gamma + 10 \alpha^{3} \beta^{2}\right) m_{1,0} + \left(20 \alpha^{4} \beta \gamma + 10 \alpha^{3} \beta^{3}\right) m_{0,0} & 5 \alpha^{4} \beta m_{1,0} + \left(5 \alpha^{5} \gamma + 10 \alpha^{4} \beta^{2}\right) m_{0,0} & 5 \alpha^{5} \beta m_{0,0} + \alpha^{5} m_{1,0} & \alpha^{6} m_{0,0} &  &  &  \\
+\left(30 \alpha^{3} \beta \gamma^{3} + 40 \alpha^{2} \beta^{3} \gamma^{2} + 6 \alpha \beta^{5} \gamma\right) m_{0,0} + \left(5 \alpha^{3} \gamma^{3} + 30 \alpha^{2} \beta^{2} \gamma^{2} + 15 \alpha \beta^{4} \gamma + \beta^{6}\right) m_{1,0} & \left(30 \alpha^{3} \beta \gamma^{2} + 40 \alpha^{2} \beta^{3} \gamma + 6 \alpha \beta^{5}\right) m_{1,0} + \left(14 \alpha^{4} \gamma^{3} + 75 \alpha^{3} \beta^{2} \gamma^{2} + 30 \alpha^{2} \beta^{4} \gamma + \alpha \beta^{6}\right) m_{0,0} & \left(9 \alpha^{4} \gamma^{2} + 45 \alpha^{3} \beta^{2} \gamma + 15 \alpha^{2} \beta^{4}\right) m_{1,0} + \left(54 \alpha^{4} \beta \gamma^{2} + 60 \alpha^{3} \beta^{3} \gamma + 6 \alpha^{2} \beta^{5}\right) m_{0,0} & \left(24 \alpha^{4} \beta \gamma + 20 \alpha^{3} \beta^{3}\right) m_{1,0} + \left(14 \alpha^{5} \gamma^{2} + 60 \alpha^{4} \beta^{2} \gamma + 15 \alpha^{3} \beta^{4}\right) m_{0,0} & \left(5 \alpha^{5} \gamma + 15 \alpha^{4} \beta^{2}\right) m_{1,0} + \left(30 \alpha^{5} \beta \gamma + 20 \alpha^{4} \beta^{3}\right) m_{0,0} & 6 \alpha^{5} \beta m_{1,0} + \left(6 \alpha^{6} \gamma + 15 \alpha^{5} \beta^{2}\right) m_{0,0} & 6 \alpha^{6} \beta m_{0,0} + \alpha^{6} m_{1,0} & \alpha^{7} m_{0,0} &  &  \\
+\left(14 \alpha^{4} \gamma^{4} + 105 \alpha^{3} \beta^{2} \gamma^{3} + 70 \alpha^{2} \beta^{4} \gamma^{2} + 7 \alpha \beta^{6} \gamma\right) m_{0,0} + \left(35 \alpha^{3} \beta \gamma^{3} + 70 \alpha^{2} \beta^{3} \gamma^{2} + 21 \alpha \beta^{5} \gamma + \beta^{7}\right) m_{1,0} & \left(14 \alpha^{4} \gamma^{3} + 105 \alpha^{3} \beta^{2} \gamma^{2} + 70 \alpha^{2} \beta^{4} \gamma + 7 \alpha \beta^{6}\right) m_{1,0} + \left(98 \alpha^{4} \beta \gamma^{3} + 175 \alpha^{3} \beta^{3} \gamma^{2} + 42 \alpha^{2} \beta^{5} \gamma + \alpha \beta^{7}\right) m_{0,0} & \left(63 \alpha^{4} \beta \gamma^{2} + 105 \alpha^{3} \beta^{3} \gamma + 21 \alpha^{2} \beta^{5}\right) m_{1,0} + \left(28 \alpha^{5} \gamma^{3} + 189 \alpha^{4} \beta^{2} \gamma^{2} + 105 \alpha^{3} \beta^{4} \gamma + 7 \alpha^{2} \beta^{6}\right) m_{0,0} & \left(14 \alpha^{5} \gamma^{2} + 84 \alpha^{4} \beta^{2} \gamma + 35 \alpha^{3} \beta^{4}\right) m_{1,0} + \left(98 \alpha^{5} \beta \gamma^{2} + 140 \alpha^{4} \beta^{3} \gamma + 21 \alpha^{3} \beta^{5}\right) m_{0,0} & \left(35 \alpha^{5} \beta \gamma + 35 \alpha^{4} \beta^{3}\right) m_{1,0} + \left(20 \alpha^{6} \gamma^{2} + 105 \alpha^{5} \beta^{2} \gamma + 35 \alpha^{4} \beta^{4}\right) m_{0,0} & \left(6 \alpha^{6} \gamma + 21 \alpha^{5} \beta^{2}\right) m_{1,0} + \left(42 \alpha^{6} \beta \gamma + 35 \alpha^{5} \beta^{3}\right) m_{0,0} & 7 \alpha^{6} \beta m_{1,0} + \left(7 \alpha^{7} \gamma + 21 \alpha^{6} \beta^{2}\right) m_{0,0} & 7 \alpha^{7} \beta m_{0,0} + \alpha^{7} m_{1,0} & \alpha^{8} m_{0,0} &  \\
+\left(112 \alpha^{4} \beta \gamma^{4} + 280 \alpha^{3} \beta^{3} \gamma^{3} + 112 \alpha^{2} \beta^{5} \gamma^{2} + 8 \alpha \beta^{7} \gamma\right) m_{0,0} + \left(14 \alpha^{4} \gamma^{4} + 140 \alpha^{3} \beta^{2} \gamma^{3} + 140 \alpha^{2} \beta^{4} \gamma^{2} + 28 \alpha \beta^{6} \gamma + \beta^{8}\right) m_{1,0} & \left(112 \alpha^{4} \beta \gamma^{3} + 280 \alpha^{3} \beta^{3} \gamma^{2} + 112 \alpha^{2} \beta^{5} \gamma + 8 \alpha \beta^{7}\right) m_{1,0} + \left(42 \alpha^{5} \gamma^{4} + 392 \alpha^{4} \beta^{2} \gamma^{3} + 350 \alpha^{3} \beta^{4} \gamma^{2} + 56 \alpha^{2} \beta^{6} \gamma + \alpha \beta^{8}\right) m_{0,0} & \left(28 \alpha^{5} \gamma^{3} + 252 \alpha^{4} \beta^{2} \gamma^{2} + 210 \alpha^{3} \beta^{4} \gamma + 28 \alpha^{2} \beta^{6}\right) m_{1,0} + \left(224 \alpha^{5} \beta \gamma^{3} + 504 \alpha^{4} \beta^{3} \gamma^{2} + 168 \alpha^{3} \beta^{5} \gamma + 8 \alpha^{2} \beta^{7}\right) m_{0,0} & \left(112 \alpha^{5} \beta \gamma^{2} + 224 \alpha^{4} \beta^{3} \gamma + 56 \alpha^{3} \beta^{5}\right) m_{1,0} + \left(48 \alpha^{6} \gamma^{3} + 392 \alpha^{5} \beta^{2} \gamma^{2} + 280 \alpha^{4} \beta^{4} \gamma + 28 \alpha^{3} \beta^{6}\right) m_{0,0} & \left(20 \alpha^{6} \gamma^{2} + 140 \alpha^{5} \beta^{2} \gamma + 70 \alpha^{4} \beta^{4}\right) m_{1,0} + \left(160 \alpha^{6} \beta \gamma^{2} + 280 \alpha^{5} \beta^{3} \gamma + 56 \alpha^{4} \beta^{5}\right) m_{0,0} & \left(48 \alpha^{6} \beta \gamma + 56 \alpha^{5} \beta^{3}\right) m_{1,0} + \left(27 \alpha^{7} \gamma^{2} + 168 \alpha^{6} \beta^{2} \gamma + 70 \alpha^{5} \beta^{4}\right) m_{0,0} & \left(7 \alpha^{7} \gamma + 28 \alpha^{6} \beta^{2}\right) m_{1,0} + \left(56 \alpha^{7} \beta \gamma + 56 \alpha^{6} \beta^{3}\right) m_{0,0} & 8 \alpha^{7} \beta m_{1,0} + \left(8 \alpha^{8} \gamma + 28 \alpha^{7} \beta^{2}\right) m_{0,0} & 8 \alpha^{8} \beta m_{0,0} + \alpha^{8} m_{1,0} & \alpha^{9} m_{0,0} \\
+\end{array}\right]
+\label{eq:generic:motzkin:Arec}
+\end{equation}
+\begin{equation}
+\begin{split}
+& m_{0,0}\left[\begin{array}{cccccccccc}
+1 &  &  &  &  &  &  &  &  &  \\
+0 & \alpha &  &  &  &  &  &  &  &  \\
+\alpha \gamma & \alpha \beta & \alpha^{2} &  &  &  &  &  &  &  \\
+2 \alpha \beta \gamma & 2 \alpha^{2} \gamma + \alpha \beta^{2} & 2 \alpha^{2} \beta & \alpha^{3} &  &  &  &  &  &  \\
+2 \alpha^{2} \gamma^{2} + 3 \alpha \beta^{2} \gamma & 6 \alpha^{2} \beta \gamma + \alpha \beta^{3} & 3 \alpha^{3} \gamma + 3 \alpha^{2} \beta^{2} & 3 \alpha^{3} \beta & \alpha^{4} &  &  &  &  &  \\
+8 \alpha^{2} \beta \gamma^{2} + 4 \alpha \beta^{3} \gamma & 5 \alpha^{3} \gamma^{2} + 12 \alpha^{2} \beta^{2} \gamma + \alpha \beta^{4} & 12 \alpha^{3} \beta \gamma + 4 \alpha^{2} \beta^{3} & 4 \alpha^{4} \gamma + 6 \alpha^{3} \beta^{2} & 4 \alpha^{4} \beta & \alpha^{5} &  &  &  &  \\
+5 \alpha^{3} \gamma^{3} + 20 \alpha^{2} \beta^{2} \gamma^{2} + 5 \alpha \beta^{4} \gamma & 25 \alpha^{3} \beta \gamma^{2} + 20 \alpha^{2} \beta^{3} \gamma + \alpha \beta^{5} & 9 \alpha^{4} \gamma^{2} + 30 \alpha^{3} \beta^{2} \gamma + 5 \alpha^{2} \beta^{4} & 20 \alpha^{4} \beta \gamma + 10 \alpha^{3} \beta^{3} & 5 \alpha^{5} \gamma + 10 \alpha^{4} \beta^{2} & 5 \alpha^{5} \beta & \alpha^{6} &  &  &  \\
+30 \alpha^{3} \beta \gamma^{3} + 40 \alpha^{2} \beta^{3} \gamma^{2} + 6 \alpha \beta^{5} \gamma & 14 \alpha^{4} \gamma^{3} + 75 \alpha^{3} \beta^{2} \gamma^{2} + 30 \alpha^{2} \beta^{4} \gamma + \alpha \beta^{6} & 54 \alpha^{4} \beta \gamma^{2} + 60 \alpha^{3} \beta^{3} \gamma + 6 \alpha^{2} \beta^{5} & 14 \alpha^{5} \gamma^{2} + 60 \alpha^{4} \beta^{2} \gamma + 15 \alpha^{3} \beta^{4} & 30 \alpha^{5} \beta \gamma + 20 \alpha^{4} \beta^{3} & 6 \alpha^{6} \gamma + 15 \alpha^{5} \beta^{2} & 6 \alpha^{6} \beta & \alpha^{7} &  &  \\
+14 \alpha^{4} \gamma^{4} + 105 \alpha^{3} \beta^{2} \gamma^{3} + 70 \alpha^{2} \beta^{4} \gamma^{2} + 7 \alpha \beta^{6} \gamma & 98 \alpha^{4} \beta \gamma^{3} + 175 \alpha^{3} \beta^{3} \gamma^{2} + 42 \alpha^{2} \beta^{5} \gamma + \alpha \beta^{7} & 28 \alpha^{5} \gamma^{3} + 189 \alpha^{4} \beta^{2} \gamma^{2} + 105 \alpha^{3} \beta^{4} \gamma + 7 \alpha^{2} \beta^{6} & 98 \alpha^{5} \beta \gamma^{2} + 140 \alpha^{4} \beta^{3} \gamma + 21 \alpha^{3} \beta^{5} & 20 \alpha^{6} \gamma^{2} + 105 \alpha^{5} \beta^{2} \gamma + 35 \alpha^{4} \beta^{4} & 42 \alpha^{6} \beta \gamma + 35 \alpha^{5} \beta^{3} & 7 \alpha^{7} \gamma + 21 \alpha^{6} \beta^{2} & 7 \alpha^{7} \beta & \alpha^{8} &  \\
+112 \alpha^{4} \beta \gamma^{4} + 280 \alpha^{3} \beta^{3} \gamma^{3} + 112 \alpha^{2} \beta^{5} \gamma^{2} + 8 \alpha \beta^{7} \gamma & 42 \alpha^{5} \gamma^{4} + 392 \alpha^{4} \beta^{2} \gamma^{3} + 350 \alpha^{3} \beta^{4} \gamma^{2} + 56 \alpha^{2} \beta^{6} \gamma + \alpha \beta^{8} & 224 \alpha^{5} \beta \gamma^{3} + 504 \alpha^{4} \beta^{3} \gamma^{2} + 168 \alpha^{3} \beta^{5} \gamma + 8 \alpha^{2} \beta^{7} & 48 \alpha^{6} \gamma^{3} + 392 \alpha^{5} \beta^{2} \gamma^{2} + 280 \alpha^{4} \beta^{4} \gamma + 28 \alpha^{3} \beta^{6} & 160 \alpha^{6} \beta \gamma^{2} + 280 \alpha^{5} \beta^{3} \gamma + 56 \alpha^{4} \beta^{5} & 27 \alpha^{7} \gamma^{2} + 168 \alpha^{6} \beta^{2} \gamma + 70 \alpha^{5} \beta^{4} & 56 \alpha^{7} \beta \gamma + 56 \alpha^{6} \beta^{3} & 8 \alpha^{8} \gamma + 28 \alpha^{7} \beta^{2} & 8 \alpha^{8} \beta & \alpha^{9} \\
+\end{array}\right] \\
+& + m_{1,0}\left[\begin{array}{cccccccccc}
+0 &  &  &  &  &  &  &  &  &  \\
+1 & 0 &  &  &  &  &  &  &  &  \\
+\beta & \alpha & 0 &  &  &  &  &  &  &  \\
+\alpha \gamma + \beta^{2} & 2 \alpha \beta & \alpha^{2} & 0 &  &  &  &  &  &  \\
+3 \alpha \beta \gamma + \beta^{3} & 2 \alpha^{2} \gamma + 3 \alpha \beta^{2} & 3 \alpha^{2} \beta & \alpha^{3} & 0 &  &  &  &  &  \\
+2 \alpha^{2} \gamma^{2} + 6 \alpha \beta^{2} \gamma + \beta^{4} & 8 \alpha^{2} \beta \gamma + 4 \alpha \beta^{3} & 3 \alpha^{3} \gamma + 6 \alpha^{2} \beta^{2} & 4 \alpha^{3} \beta & \alpha^{4} & 0 &  &  &  &  \\
+10 \alpha^{2} \beta \gamma^{2} + 10 \alpha \beta^{3} \gamma + \beta^{5} & 5 \alpha^{3} \gamma^{2} + 20 \alpha^{2} \beta^{2} \gamma + 5 \alpha \beta^{4} & 15 \alpha^{3} \beta \gamma + 10 \alpha^{2} \beta^{3} & 4 \alpha^{4} \gamma + 10 \alpha^{3} \beta^{2} & 5 \alpha^{4} \beta & \alpha^{5} & 0 &  &  &  \\
+5 \alpha^{3} \gamma^{3} + 30 \alpha^{2} \beta^{2} \gamma^{2} + 15 \alpha \beta^{4} \gamma + \beta^{6} & 30 \alpha^{3} \beta \gamma^{2} + 40 \alpha^{2} \beta^{3} \gamma + 6 \alpha \beta^{5} & 9 \alpha^{4} \gamma^{2} + 45 \alpha^{3} \beta^{2} \gamma + 15 \alpha^{2} \beta^{4} & 24 \alpha^{4} \beta \gamma + 20 \alpha^{3} \beta^{3} & 5 \alpha^{5} \gamma + 15 \alpha^{4} \beta^{2} & 6 \alpha^{5} \beta & \alpha^{6} & 0 &  &  \\
+35 \alpha^{3} \beta \gamma^{3} + 70 \alpha^{2} \beta^{3} \gamma^{2} + 21 \alpha \beta^{5} \gamma + \beta^{7} & 14 \alpha^{4} \gamma^{3} + 105 \alpha^{3} \beta^{2} \gamma^{2} + 70 \alpha^{2} \beta^{4} \gamma + 7 \alpha \beta^{6} & 63 \alpha^{4} \beta \gamma^{2} + 105 \alpha^{3} \beta^{3} \gamma + 21 \alpha^{2} \beta^{5} & 14 \alpha^{5} \gamma^{2} + 84 \alpha^{4} \beta^{2} \gamma + 35 \alpha^{3} \beta^{4} & 35 \alpha^{5} \beta \gamma + 35 \alpha^{4} \beta^{3} & 6 \alpha^{6} \gamma + 21 \alpha^{5} \beta^{2} & 7 \alpha^{6} \beta & \alpha^{7} & 0 &  \\
+14 \alpha^{4} \gamma^{4} + 140 \alpha^{3} \beta^{2} \gamma^{3} + 140 \alpha^{2} \beta^{4} \gamma^{2} + 28 \alpha \beta^{6} \gamma + \beta^{8} & 112 \alpha^{4} \beta \gamma^{3} + 280 \alpha^{3} \beta^{3} \gamma^{2} + 112 \alpha^{2} \beta^{5} \gamma + 8 \alpha \beta^{7} & 28 \alpha^{5} \gamma^{3} + 252 \alpha^{4} \beta^{2} \gamma^{2} + 210 \alpha^{3} \beta^{4} \gamma + 28 \alpha^{2} \beta^{6} & 112 \alpha^{5} \beta \gamma^{2} + 224 \alpha^{4} \beta^{3} \gamma + 56 \alpha^{3} \beta^{5} & 20 \alpha^{6} \gamma^{2} + 140 \alpha^{5} \beta^{2} \gamma + 70 \alpha^{4} \beta^{4} & 48 \alpha^{6} \beta \gamma + 56 \alpha^{5} \beta^{3} & 7 \alpha^{7} \gamma + 28 \alpha^{6} \beta^{2} & 8 \alpha^{7} \beta & \alpha^{8} & 0 \\
+\end{array}\right]
+\end{split}
+\end{equation}
+\end{sidewaystable}
 
 

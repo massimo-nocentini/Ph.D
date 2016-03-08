@@ -5,8 +5,6 @@ from sympy.core.cache import *
 from sympy.core.function import UndefinedFunction
 from sympy.printing.latex import latex
 
-import re
-
 from functools import reduce
 
 class AbstractGenericElement(object): 
@@ -382,12 +380,6 @@ def free_variables_in_matrix(matrix_spec, unfolding_rows):
     
     matrix, indexed_sym = matrix_spec
     return set(matrix[r,0] for r in range(unfolding_rows))
-    #variables = set()
-    #for r in range(unfolding_rows):
-        #variables.add(indexed_sym[r,0])
-        ##for c in range(r+1):
-            ##variables.add(matrix[r,c])
-    #return variables
 
 def clean_up_zeros(matrix_spec, label="", colors={}, 
                     environment="equation", cancel_zeros=True, diagonal_col_offset=None):

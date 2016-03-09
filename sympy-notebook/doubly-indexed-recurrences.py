@@ -418,3 +418,33 @@ def latex_of_matrix_expansion(matrix_expansion, *args, **kwds):
         tex_code += add_code
     return tex_code[0:-len(add_code)]
 
+
+class PascalHockeyStick:
+
+    def set_data(self, indexed_sym, row_sym, col_sym):
+        self.indexed_sym = indexed_sym
+        self.row_sym = row_sym
+        self.col_sym = col_sym
+
+    def __call__(self, *args, **kwds): pass
+
+    
+class DiagonalHockeyStick(PascalHockeyStick):
+
+    def __call__(self, i): return self.indexed_sym[self.row_sym-i, self.col_sym + 1 -i]    
+
+class VerticalHockeyStick(PascalHockeyStick):
+
+    def __call__(self, i): return self.indexed_sym[self.row_sym-i, self.col_sym]    
+
+def make_pascal_hockey_stick_recurrence(indexed_sym, length, stick,
+        row_sym=Symbol('n'), col_sym=Symbol('k')):
+    
+    stick.set_data(indexed_sym, row_sym, col_sym)
+
+    rhs = 0
+    for i in range(length): rhs = rhs + stick(i)
+
+    return Eq(indexed_sym[row_sym+1, col_sym+1], rhs)
+
+

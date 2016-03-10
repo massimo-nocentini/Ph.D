@@ -149,6 +149,10 @@ class OnMainDiagonalFreeVarsLocation(FreeVarsLocation):
 
     def accept(self, visitor): return visitor.forMainDiagonalFreeVarsLocation(self)
 
+class OnLastButOneUnfoldingRowFreeVarsLocation(FreeVarsLocation):
+
+    def accept(self, visitor): return visitor.forLastButOneUnfoldingRowFreeVarsLocation(self)
+
 
 class LookupFreeVariablesVisitor:
 
@@ -163,6 +167,10 @@ class LookupFreeVariablesVisitor:
     def forMainDiagonalFreeVarsLocation(self, location):
         return set(self.matrix[r,r] for r in range(self.unfolding_rows))
 
+    def forLastButOneUnfoldingRowFreeVarsLocation(self, location):
+        return set(self.matrix[self.unfolding_rows-1,c] for c in range(self.unfolding_rows))
+
+
 class StartingColIndexForUnfoldVisitor:
 
     def __call__(self, location): return location.accept(self)
@@ -170,6 +178,9 @@ class StartingColIndexForUnfoldVisitor:
     def forColumnZeroFreeVarsLocation(self, location): return 1
 
     def forMainDiagonalFreeVarsLocation(self, location): return 0
+
+    def forLastButOneUnfoldingRowFreeVarsLocation(self, location): pass
+
 
 class AdjustEndColumnIndexVisitor:
 
@@ -181,6 +192,9 @@ class AdjustEndColumnIndexVisitor:
 
     def forMainDiagonalFreeVarsLocation(self, location): return self.cols
 
+    def forLastButOneUnfoldingRowFreeVarsLocation(self, location): pass
+
+
 class NullAdjustEndColumnIndexVisitor:
 
     def __call__(self, location, cols): return cols + 1
@@ -188,6 +202,9 @@ class NullAdjustEndColumnIndexVisitor:
     def forColumnZeroFreeVarsLocation(self, location): pass
 
     def forMainDiagonalFreeVarsLocation(self, location): pass
+
+    def forLastButOneUnfoldingRowFreeVarsLocation(self, location): pass
+
 
 class EntailDependenciesVisitor():
 
@@ -205,6 +222,41 @@ class EntailDependenciesVisitor():
         matrix, indexed_sym = self.matrix_spec
         return {indexed_sym[r,r]:matrix[r,r] for r in range(1, self.unfolding_rows)}
 
+    def forLastButOneUnfoldingRowFreeVarsLocation(self, location):
+
+        matrix, indexed_sym = self.matrix_spec
+        return {indexed_sym[self.unfolding_rows-1,c]:matrix[self.unfolding_rows-1,c] 
+                    for c in range(self.unfolding_rows)}
+
+
+class UpperChunkUnfoldingStrategy:
+
+    def __call__(self, location, *args, **kwds): 
+        self.args, self.kwds = args, kwds
+        return location.accept(self)
+
+    def forColumnZeroFreeVarsLocation(self, location): 
+        return self.forNotHorizontallyPlaced(location)
+
+    def forMainDiagonalFreeVarsLocation(self, location):
+        return self.forNotHorizontallyPlaced(location)
+
+    def forNotHorizontallyPlaced(self, free_vars_location):
+
+        start_col_index = StartingColIndexForUnfoldVisitor()
+
+        return unfold_in_matrix(*self.args, 
+            unfold_row_start_index=1, unfold_col_start_index=start_col_index(free_vars_location),
+            include_substitutions=True, adjust_end_column_index = AdjustEndColumnIndexVisitor(), **self.kwds)
+
+    def forLastButOneUnfoldingRowFreeVarsLocation(self, location):
+        return invert_rec(*self.args, **self.kwds)
+
+def make_A_Z_sequences_from_recs(Arec, Zrec=None):
+
+    Aseq = Asequence(Arec)
+    Zseq = Aseq if Zrec is None else Zsequence(Zrec)
+    return Aseq, Zseq
 
 def unfold_in_matrix(m_spec, Arec, Zrec=None,
             unfold_row_start_index=1, unfolding_rows=None, diagonal_col_offset=None,
@@ -215,9 +267,7 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
     m, indexed_sym = m_spec
     m = m.copy()
 
-    Aseq = Asequence(Arec)
-
-    Zseq = Aseq if Zrec is None else Zsequence(Zrec)
+    Aseq, Zseq = make_A_Z_sequences_from_recs(Arec, Zrec)
 
     if unfolding_rows is None: unfolding_rows = m.rows
     if diagonal_col_offset is None: diagonal_col_offset = 1
@@ -295,16 +345,56 @@ def factorize_each_term_respect_free_variables_location(
 
 def unfold_upper_chunk(*args, **kwds):
 
-    start_col_index = StartingColIndexForUnfoldVisitor()
     free_vars_location = kwds['free_vars_location']
+    unfolding_rows = kwds['unfolding_rows']
 
-    matrix_spec, substitutions = unfold_in_matrix(*args, 
-        unfold_row_start_index=1, unfold_col_start_index=start_col_index(free_vars_location),
-        include_substitutions=True, adjust_end_column_index = AdjustEndColumnIndexVisitor(), **kwds)
+    upper_chunk_unfolding_strategy = UpperChunkUnfoldingStrategy()
+
+    matrix_spec, substitutions = upper_chunk_unfolding_strategy(
+        free_vars_location, *args, **kwds)
 
     return  factorize_each_term_respect_free_variables_location(
-                matrix_spec, kwds['unfolding_rows'], free_vars_location, substitutions)
+                matrix_spec, unfolding_rows, free_vars_location, substitutions)
 
+def invert_rec( matrix_spec, Arec, Zrec=None, *args, unfolding_rows=None,
+                diagonal_col_offset=1, row_sym=Symbol('n'), col_sym=Symbol('k'), **kwds):
+
+    matrix, indexed_sym = matrix_spec
+    Aseq, Zseq = make_A_Z_sequences_from_recs(Arec, Zrec)
+
+    if unfolding_rows is None: unfolding_rows = matrix.rows
+
+    substitutions = []
+
+    for i in range(1, unfolding_rows):
+        r = unfolding_rows-i
+
+        eqs = []
+        for c in range(r * diagonal_col_offset + 1):
+            seq = Aseq if c > 0 else Zseq
+            instantiated_rec = seq.instantiate((row_sym, r), (col_sym, c))
+            eqs.append(instantiated_rec)
+             
+        sols = solve(eqs, check=True)
+        
+        assert len(sols) > 0, "r:{} provides no solutions".format(r)
+
+        sol = sols[0]
+        previous_r = r-1
+        substitutions.append({term:sol[term] 
+            for c in range(previous_r * diagonal_col_offset + 1)
+            for term in [ indexed_sym[previous_r, c] ]})
+
+    backwards_substitutions = {}
+
+    for substitution in substitutions:
+        backwards_substitutions.update({k:v.subs(backwards_substitutions) for k,v in substitution.items()})
+
+    zero_subs = {indexed_sym[r,c]:0 for r in range(0,matrix.rows*3) for c in range(r+1, matrix.cols*3)}
+    backwards_substitutions = {k:v.subs(zero_subs) for k,v in backwards_substitutions.items()}
+
+    #new_matrix_spec = matrix.subs(backwards_substitutions), indexed_sym
+    return matrix_spec, backwards_substitutions
 
 def build_rec_from_A_matrix(A_matrix): pass
 

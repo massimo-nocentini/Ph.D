@@ -137,10 +137,80 @@ def explode_term_respect_to(term, op_class, deep=False):
     return exploded
     
 
+class FreeVarsLocation:
+
+    def accept(self, visitor): pass
+
+class OnColumnZeroFreeVarsLocation(FreeVarsLocation):
+
+    def accept(self, visitor): return visitor.forColumnZeroFreeVarsLocation(self)
+
+class OnMainDiagonalFreeVarsLocation(FreeVarsLocation):
+
+    def accept(self, visitor): return visitor.forMainDiagonalFreeVarsLocation(self)
+
+
+class LookupFreeVariablesVisitor:
+
+    def __call__(self, matrix_spec, unfolding_rows, location): 
+        self.matrix, self.indexed_sym, self.unfolding_rows = \
+            matrix_spec[0], matrix_spec[1], unfolding_rows
+        return location.accept(self)
+
+    def forColumnZeroFreeVarsLocation(self, location):
+        return set(self.matrix[r,0] for r in range(self.unfolding_rows))
+
+    def forMainDiagonalFreeVarsLocation(self, location):
+        return set(self.matrix[r,r] for r in range(self.unfolding_rows))
+
+class StartingColIndexForUnfoldVisitor:
+
+    def __call__(self, location): return location.accept(self)
+
+    def forColumnZeroFreeVarsLocation(self, location): return 1
+
+    def forMainDiagonalFreeVarsLocation(self, location): return 0
+
+class AdjustEndColumnIndexVisitor:
+
+    def __call__(self, location, cols): 
+        self.cols = cols
+        return location.accept(self)
+
+    def forColumnZeroFreeVarsLocation(self, location): return self.cols + 1
+
+    def forMainDiagonalFreeVarsLocation(self, location): return self.cols
+
+class NullAdjustEndColumnIndexVisitor:
+
+    def __call__(self, location, cols): return cols + 1
+
+    def forColumnZeroFreeVarsLocation(self, location): pass
+
+    def forMainDiagonalFreeVarsLocation(self, location): pass
+
+class EntailDependenciesVisitor():
+
+    def __call__(self, matrix_spec, unfolding_rows, location): 
+        self.matrix_spec, self.unfolding_rows = matrix_spec, unfolding_rows
+        return location.accept(self)
+
+    def forColumnZeroFreeVarsLocation(self, location):
+
+        matrix, indexed_sym = self.matrix_spec
+        return {indexed_sym[r,0]:matrix[r,0] for r in range(1, self.unfolding_rows)}
+
+    def forMainDiagonalFreeVarsLocation(self, location):
+
+        matrix, indexed_sym = self.matrix_spec
+        return {indexed_sym[r,r]:matrix[r,r] for r in range(1, self.unfolding_rows)}
+
+
 def unfold_in_matrix(m_spec, Arec, Zrec=None,
             unfold_row_start_index=1, unfolding_rows=None, diagonal_col_offset=None,
-            unfold_col_start_index=0, row_sym=Symbol('n'), col_sym=Symbol('k'),
-            include_substitutions=False):
+            unfold_col_start_index=None, row_sym=Symbol('n'), col_sym=Symbol('k'),
+            include_substitutions=False, free_vars_location=OnColumnZeroFreeVarsLocation(),
+            adjust_end_column_index=NullAdjustEndColumnIndexVisitor()):
 
     m, indexed_sym = m_spec
     m = m.copy()
@@ -151,15 +221,17 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
 
     if unfolding_rows is None: unfolding_rows = m.rows
     if diagonal_col_offset is None: diagonal_col_offset = 1
+    if unfold_col_start_index is None: unfold_col_start_index = 0
 
     substitutions = {}
-    variables = free_variables_in_matrix(m_spec, unfolding_rows)
+    variables = free_variables_in_matrix(m_spec, unfolding_rows, free_vars_location)
     
     for r in range(unfold_row_start_index, unfolding_rows):
         
         sequence = Aseq if unfold_col_start_index > 0 else Zseq
-        
-        for c in range(unfold_col_start_index, r * diagonal_col_offset + 1):
+        cols = adjust_end_column_index(free_vars_location, cols=r * diagonal_col_offset)
+
+        for c in range(unfold_col_start_index, cols):
 
             instantiated_rec = sequence.instantiate((row_sym, r), (col_sym, c))
 
@@ -212,24 +284,27 @@ def apply_subs(m, substitutions):
     for k,v in substitutions.items(): term = Subs(term.replace(k,v), k, v)
     return term
 
-def unfold_upper_chunk(*args, **kwds):
-
-    matrix_spec, substitutions = unfold_in_matrix(*args, 
-        unfold_row_start_index=1, unfold_col_start_index=1, 
-        include_substitutions=True, **kwds)
+def factorize_each_term_respect_free_variables_location(
+        matrix_spec, unfolding_rows, free_vars_location, substitutions):
 
     matrix, indexed_sym = matrix_spec
-
+    variables = free_variables_in_matrix(matrix_spec, unfolding_rows, free_vars_location)
     subs_matrix = matrix.subs(substitutions, simulataneous=True).applyfunc(
-        lambda term: Poly(term, free_variables_in_matrix(matrix_spec, kwds['unfolding_rows'])).args[0])
-
+                lambda term: Poly(term, variables).args[0])
     return subs_matrix, indexed_sym
 
-def entail_dependencies(matrix_spec, unfolding_rows):
+def unfold_upper_chunk(*args, **kwds):
 
-    matrix, indexed_sym = matrix_spec
+    start_col_index = StartingColIndexForUnfoldVisitor()
+    free_vars_location = kwds['free_vars_location']
 
-    return {indexed_sym[r,0]:matrix[r,0] for r in range(1, unfolding_rows)}
+    matrix_spec, substitutions = unfold_in_matrix(*args, 
+        unfold_row_start_index=1, unfold_col_start_index=start_col_index(free_vars_location),
+        include_substitutions=True, adjust_end_column_index = AdjustEndColumnIndexVisitor(), **kwds)
+
+    return  factorize_each_term_respect_free_variables_location(
+                matrix_spec, kwds['unfolding_rows'], free_vars_location, substitutions)
+
 
 def build_rec_from_A_matrix(A_matrix): pass
 
@@ -237,7 +312,7 @@ def build_rec_from_A_sequence(A_sequence_spec, symbolic_row_index = Symbol('n')+
     A_sequence_gf, indeterminate, order = A_sequence_spec
     return build_rec_from_A_matrix({(symbolic_row_index-1) : (A_sequence, indeterminate)}, order)
 
-def extract_inner_matrices(m_spec, unfolding_rows, diagonal_col_offset=None):
+def extract_inner_matrices(m_spec, unfolding_rows, diagonal_col_offset=None, free_vars_location=None):
 
     matrix, indexed_sym = m_spec
     
@@ -245,11 +320,10 @@ def extract_inner_matrices(m_spec, unfolding_rows, diagonal_col_offset=None):
 
     matrices = {}
 
-    variables = free_variables_in_matrix(m_spec, unfolding_rows)
+    variables = free_variables_in_matrix(m_spec, unfolding_rows, free_vars_location)
 
-    for row in range(unfolding_rows):
+    for current_symbolic_element in variables:
 
-        current_symbolic_element = indexed_sym[row, 0]
         nullable_variables = variables - set([current_symbolic_element])
         substitutions = {var:0 for var in nullable_variables}
 
@@ -313,29 +387,37 @@ def make_abstract_A_sequence(spec, inits={}):
     
     return term.subs(inits)
 
+def entail_dependencies(unfolded_matrix_spec, unfolding_rows, free_vars_location):
+    visitor = EntailDependenciesVisitor()
+    return visitor(unfolded_matrix_spec, unfolding_rows, free_vars_location)
 
-def factorize_matrix_as_matrices_sum(matrix_spec, length=None, perform_check=False, *args, **kwds):
+def factorize_matrix_as_matrices_sum(
+        matrix_spec, length=None, perform_check=False, *args, **kwds):
     
     matrix = matrix_spec[0]
 
     if length is None: length = matrix.rows
 
+    if 'free_vars_location' not in kwds or kwds['free_vars_location'] is None: 
+        kwds.update({'free_vars_location':OnColumnZeroFreeVarsLocation()})
+
     assert length <= matrix.rows, "It was required an expansion using {} matrices when" + \
         " the provided matrix had {} rows".format(length, matrix_spec[0].rows)
 
     diagonal_col_offset = kwds['diagonal_col_offset'] if 'diagonal_col_offset' in kwds else None
+    free_vars_location = kwds['free_vars_location']
 
     unfolded_matrix_spec = unfold_in_matrix(matrix_spec, *args, **kwds)
     splitted_matrix_spec = unfold_in_matrix(matrix_spec, *args, unfold_row_start_index=length, **kwds)
     clean_splitted_matrix_spec = unfold_upper_chunk(splitted_matrix_spec, *args, unfolding_rows=length, **kwds)
-    matrix_expansion = extract_inner_matrices(clean_splitted_matrix_spec, length, diagonal_col_offset)
-    inits_dependencies = entail_dependencies(unfolded_matrix_spec, unfolding_rows=length)
+    matrix_expansion = extract_inner_matrices(clean_splitted_matrix_spec, length, diagonal_col_offset, free_vars_location)
+    inits_dependencies = entail_dependencies(unfolded_matrix_spec, length, free_vars_location)
 
     if perform_check:
         should_be_true = check_matrix_expansion(unfolded_matrix_spec, matrix_expansion, inits_dependencies)
         assert should_be_true == True
 
-    return dict(unfolded=extract_inner_matrices(unfolded_matrix_spec, 1, diagonal_col_offset), 
+    return dict(unfolded=extract_inner_matrices(unfolded_matrix_spec, 1, diagonal_col_offset, free_vars_location), 
                 splitted=clean_splitted_matrix_spec[0],
                 dirty_splitted=splitted_matrix_spec[0],
                 expansion=matrix_expansion,
@@ -376,10 +458,10 @@ def apply_factor_inside_matrix(matrix_spec, inits=None):
     return matrix_spec[0].subs(inits).applyfunc(lambda term: factor(term)), gen_sym
 
 
-def free_variables_in_matrix(matrix_spec, unfolding_rows):
+def free_variables_in_matrix(matrix_spec, unfolding_rows, free_vars_location):
     
-    matrix, indexed_sym = matrix_spec
-    return set(matrix[r,0] for r in range(unfolding_rows))
+    free_vars_respect = LookupFreeVariablesVisitor()
+    return free_vars_respect(matrix_spec, unfolding_rows, free_vars_location)
 
 def clean_up_zeros(matrix_spec, label="", colors={}, 
                     environment="equation", cancel_zeros=True, diagonal_col_offset=None):

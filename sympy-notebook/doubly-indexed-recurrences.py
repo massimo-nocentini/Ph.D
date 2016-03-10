@@ -390,7 +390,9 @@ def invert_rec( matrix_spec, Arec, Zrec=None, *args, unfolding_rows=None,
     for substitution in substitutions:
         backwards_substitutions.update({k:v.subs(backwards_substitutions) for k,v in substitution.items()})
 
-    zero_subs = {indexed_sym[r,c]:0 for r in range(0,matrix.rows*3) for c in range(r+1, matrix.cols*3)}
+    # FIXME: the following `*3` is a very large approximation: it should be better to
+    # deduce the maximum subscript about columns subscripts.
+    zero_subs = {indexed_sym[r,c]:0 for r in range(0, matrix.rows*3) for c in range(r+1, matrix.cols*3)}
     backwards_substitutions = {k:v.subs(zero_subs) for k,v in backwards_substitutions.items()}
 
     #new_matrix_spec = matrix.subs(backwards_substitutions), indexed_sym

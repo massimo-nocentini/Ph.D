@@ -85,18 +85,13 @@ class AbstractSequence:
         self.rec = rec
         self.other_seq = None
 
-    def tie_other_seq(self, other_seq): self.other_seq = other_seq
-
-    def nextone(self): pass
-
     def instantiate(self, r, c): pass
 
+    def accept(self, visitor): pass
 
 class Zsequence(AbstractSequence):
     
     def __getitem__(self, col): return self.rec if col is 0 else self.other_seq[col]
-
-    def nextone(self): return self.other_seq
 
     def instantiate(self, row, col):
         
@@ -110,12 +105,11 @@ class Zsequence(AbstractSequence):
         row_sol = solve(row_eq, row_sym)[0]
         return self.rec.subs(row_sym, row_sol)
 
+    def accept(self, visitor): return visitor.forZsequence(self)
 
 class Asequence(AbstractSequence): 
 
     def __getitem__(self, col): return self.rec if col > 0 else self.other_seq[col]
-
-    def nextone(self): return self
 
     def instantiate(self, row, col):
         
@@ -126,6 +120,75 @@ class Asequence(AbstractSequence):
         row_eq, col_eq = Eq(row_sym_index,r), Eq(col_sym_index,c)
         row_sol, col_sol = (solve(row_eq, row_sym)[0], solve(col_eq, col_sym)[0])
         return self.rec.subs({row_sym: row_sol, col_sym:col_sol}, simultaneous=True)
+
+    def accept(self, visitor): return visitor.forAsequence(self)
+
+class ExplodeRecTermsFromGF:
+
+    def __call__(self, seq, gf_spec, indexed_sym, row_sym, col_sym, left_offset):
+
+        self.gf_spec, self.indexed_sym, self.row_sym, self.col_sym, self.left_offset = \
+            gf_spec, indexed_sym, row_sym, col_sym, left_offset
+
+        return seq.accept(self)
+
+    def forAsequence(self, seq):
+
+        gf, gf_var, n = self.gf_spec
+        gf_series = gf.series(gf_var, n=n)
+
+        summands = [gf_series.coeff(gf_var, n=i) * self.indexed_sym[self.row_sym, self.col_sym + (i-self.left_offset)] 
+                        for i in range(n)]
+
+        rhs = Add(*summands, evaluate=False).doit(deep=False)
+            
+        return Eq(self.indexed_sym[self.row_sym+1, self.col_sym+1], rhs)
+
+    def forZsequence(self, seq):
+
+        gf, gf_var, n = self.gf_spec
+        gf_series = gf.series(gf_var, n=n)
+
+        summands = [gf_series.coeff(gf_var, n=i) * self.indexed_sym[self.row_sym, i] for i in range(n)]
+
+        rhs = Add(*summands, evaluate=False).doit(deep=False)
+            
+        return Eq(self.indexed_sym[self.row_sym+1, 0], rhs)
+
+
+class MaxColumnSubscriptVisitor:
+
+    def __call__(self, matrix_spec, seq, row_sym, col_sym):
+        self.matrix_spec, self.row_sym, self.col_sym = matrix_spec, row_sym, col_sym
+        return seq.accept(self)
+
+    def forAsequence(self, seq):
+        
+        matrix = self.matrix_spec[0]
+        # the following substitutions for row and col symbols is greater than
+        # the necessary: in reality for recurrences where lhs subscripts are {n+1, k+1}
+        # as usual, then we should substitute matrix.rows-2 and matrix.cols-2, respectively.
+        instantiated_rec = seq.rec.subs({self.row_sym:matrix.rows, self.col_sym:matrix.cols}, 
+                                        simultaneous=True)  
+        
+        max_col_subscript = self.col_subscript(instantiated_rec.lhs)
+        for rhs_term in explode_term_respect_to(instantiated_rec.rhs, op_class=Add):
+            current_col_subscript = self.col_subscript(rhs_term)
+            if current_col_subscript is None: continue
+            max_col_subscript = max(max_col_subscript, current_col_subscript)
+        
+        return max_col_subscript
+
+    def col_subscript(self, term):
+
+        coeff_wild, row_wild, col_wild = Wild('coeff'), Wild('row'), Wild('col')
+        indexed_sym = self.matrix_spec[1]
+
+        matched = term.match(coeff_wild * indexed_sym[row_wild, col_wild])
+        return matched[col_wild] if matched and coeff_wild in matched else None
+
+    def forZsequence(self, seq): return self.forAsequence(seq)
+
 
 def explode_term_respect_to(term, op_class, deep=False):
 
@@ -315,19 +378,11 @@ def unfold_in_matrix(m_spec, Arec, Zrec=None,
     m_spec = m, indexed_sym
     return (m_spec, substitutions) if include_substitutions else m_spec
             
-def build_rec_from_gf(gf_spec, indexed_sym, 
+def build_rec_from_gf(gf_spec, indexed_sym, seq_class=Asequence,
                       row_sym=Symbol('n'), col_sym=Symbol('k'), left_offset=0, evaluate=False):
 
-    gf, gf_var, n = gf_spec
-    gf_series = gf.series(gf_var, n=n)
-
-    #rhs = 0
-    #for i in range(n): rhs += gf_series.coeff(gf_var, n=i) * indexed_sym[row_sym, col_sym + i]
-    summands = [gf_series.coeff(gf_var, n=i) * indexed_sym[row_sym, col_sym + (i-left_offset)] 
-                    for i in range(n)]
-    rhs = Add(*summands, evaluate=False).doit(deep=False)
-        
-    return Eq(indexed_sym[row_sym+1, col_sym+1], rhs)
+    explode = ExplodeRecTermsFromGF()
+    return explode(seq_class(None), gf_spec, indexed_sym, row_sym, col_sym, left_offset)
     
 def apply_subs(m, substitutions):
     term = m
@@ -339,7 +394,7 @@ def factorize_each_term_respect_free_variables_location(
 
     matrix, indexed_sym = matrix_spec
     variables = free_variables_in_matrix(matrix_spec, unfolding_rows, free_vars_location)
-    subs_matrix = matrix.subs(substitutions, simulataneous=True).applyfunc(
+    subs_matrix = matrix.subs(substitutions, simultaneous=True).applyfunc(
                 lambda term: Poly(term, variables).args[0])
     return subs_matrix, indexed_sym
 
@@ -390,12 +445,11 @@ def invert_rec( matrix_spec, Arec, Zrec=None, *args, unfolding_rows=None,
     for substitution in substitutions:
         backwards_substitutions.update({k:v.subs(backwards_substitutions) for k,v in substitution.items()})
 
-    # FIXME: the following `*3` is a very large approximation: it should be better to
-    # deduce the maximum subscript about columns subscripts.
-    zero_subs = {indexed_sym[r,c]:0 for r in range(0, matrix.rows*3) for c in range(r+1, matrix.cols*3)}
+    find_max_subscript = MaxColumnSubscriptVisitor()
+    cols = find_max_subscript(matrix_spec, Aseq, row_sym, col_sym)
+    zero_subs = {indexed_sym[r,c]:0 for r in range(0, matrix.rows) for c in range(r+1, cols+1)}
     backwards_substitutions = {k:v.subs(zero_subs) for k,v in backwards_substitutions.items()}
 
-    #new_matrix_spec = matrix.subs(backwards_substitutions), indexed_sym
     return matrix_spec, backwards_substitutions
 
 def build_rec_from_A_matrix(A_matrix): pass

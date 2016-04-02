@@ -333,10 +333,11 @@ class AdjustFactorizationVisitor():
         diagonal_matrix = zeros(rows, cols)
         mixed_matrix = zeros(rows, cols)
         expansion = self.factorization['expansion']
+        unfolding_rows = len(expansion)
 
         new_expansion = {}
 
-        for i in range(len(expansion)):
+        for i in range(unfolding_rows-1):
             free_variable = indexed_sym[i,i]
             inner_matrix = expansion[free_variable]
 
@@ -345,9 +346,21 @@ class AdjustFactorizationVisitor():
             rectangular_matrix = free_variable * inner_matrix[i+1:,:i]
             mixed_matrix[i+1:,:i] = mixed_matrix[i+1:,:i] + rectangular_matrix
 
-            sub_matrix = inner_matrix[i+1:,i:]
+            sub_matrix = zeros(rows, cols)
+            sub_matrix[i+1:,i:] = sub_matrix[i+1:,i:] + inner_matrix[i+1:,i:]
             new_expansion[free_variable] = sub_matrix
-    
+        
+        
+        # handle stuff about the last variable manually
+        i = unfolding_rows-1
+        free_variable = indexed_sym[i,i]
+        last_inner_matrix = expansion[free_variable]
+        rectangular_matrix = free_variable * last_inner_matrix[i+1:,:i]
+        mixed_matrix[i+1:,:i] = mixed_matrix[i+1:,:i] + rectangular_matrix
+        last_sub_matrix = zeros(rows, cols)
+        last_sub_matrix[i:,i:] = last_sub_matrix[i:,i:] + last_inner_matrix[i:,i:]
+        new_expansion[free_variable] = last_sub_matrix
+
         new_expansion['diagonal'] = diagonal_matrix
         new_expansion['mixed'] = mixed_matrix
 

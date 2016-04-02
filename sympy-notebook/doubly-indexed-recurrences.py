@@ -315,6 +315,49 @@ class UpperChunkUnfoldingStrategy:
     def forLastButOneUnfoldingRowFreeVarsLocation(self, location):
         return invert_rec(*self.args, **self.kwds)
 
+
+class AdjustFactorizationVisitor():
+
+    def __call__(self, matrix_spec, factorization, location): 
+        self.matrix_spec, self.factorization = matrix_spec, factorization
+        return location.accept(self)
+
+    def forColumnZeroFreeVarsLocation(self, location):
+
+        return self.factorization
+
+    def forMainDiagonalFreeVarsLocation(self, location):
+
+        indexed_sym = self.matrix_spec[1]
+        rows, cols = self.matrix_spec[0].rows, self.matrix_spec[0].cols
+        diagonal_matrix = zeros(rows, cols)
+        mixed_matrix = zeros(rows, cols)
+        expansion = self.factorization['expansion']
+
+        new_expansion = {}
+
+        for i in range(len(expansion)):
+            free_variable = indexed_sym[i,i]
+            inner_matrix = expansion[free_variable]
+
+            diagonal_matrix[i,i] = diagonal_matrix[i,i] + free_variable
+
+            rectangular_matrix = free_variable * inner_matrix[i+1:,:i]
+            mixed_matrix[i+1:,:i] = mixed_matrix[i+1:,:i] + rectangular_matrix
+
+            sub_matrix = inner_matrix[i+1:,i:]
+            new_expansion[free_variable] = sub_matrix
+    
+        new_expansion['diagonal'] = diagonal_matrix
+        new_expansion['mixed'] = mixed_matrix
+
+        return new_expansion
+
+
+    def forLastButOneUnfoldingRowFreeVarsLocation(self, location):
+
+        return self.factorization
+
 def make_A_Z_sequences_from_recs(Arec, Zrec=None):
 
     Aseq = Asequence(Arec)
@@ -603,6 +646,9 @@ def apply_factor_inside_matrix(matrix_spec, inits=None):
 
     return matrix_spec[0].subs(inits).applyfunc(lambda term: factor(term)), gen_sym
 
+def adjust_expansion(matrix_spec, factorization, free_vars_location):
+    adjust = AdjustFactorizationVisitor()
+    return adjust(matrix_spec, factorization, free_vars_location)
 
 def free_variables_in_matrix(matrix_spec, unfolding_rows, free_vars_location):
     

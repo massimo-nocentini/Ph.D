@@ -61,12 +61,15 @@ def build_modular_catalan(principal_cluster, modulo=Integer(2)):
     assert len(sols) is 1
     alpha = sols[0]
     
+    end_of_principal_cluster = modulo**alpha
     next_alpha = modulo**(alpha + 1)
     next_pc = zeros(next_alpha, next_alpha)
-    
+
     triangle_copy(principal_cluster, next_pc, (0,0))
-    triangle_copy(principal_cluster, next_pc, (modulo**alpha,modulo**alpha))
-    mirror_triangle(next_pc, (modulo**alpha, modulo**alpha -1), range(modulo**alpha-1))
-    fill_odd_coeffs(next_pc, next_alpha-1, modulo**alpha)
+    triangle_copy(principal_cluster, next_pc, 
+                    (end_of_principal_cluster,end_of_principal_cluster))
+    mirror_triangle(next_pc, (end_of_principal_cluster, end_of_principal_cluster-1), 
+                    range(end_of_principal_cluster-1))
+    fill_odd_coeffs(next_pc, next_alpha-1, end_of_principal_cluster)
 
     return next_pc

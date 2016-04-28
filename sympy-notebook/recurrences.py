@@ -5,7 +5,10 @@ from collections import namedtuple
 
 from sympy import *
 
-RecurrenceSpec = namedtuple('RecurrenceSpec', 'recurrence_eq, index, indexed, terms_cache')
+from utils import *
+
+RecurrenceSpec = namedtuple('RecurrenceSpec', 
+                            'recurrence_eq, index, indexed, terms_cache')
 
 def make_recurrence_spec(**kwds):
     '''
@@ -15,12 +18,14 @@ def make_recurrence_spec(**kwds):
     - recurrence_eq: an `Eq` object representing the inductive definition
     - index: a `Symbol` object to instantiate during unfolding 
     - indexed: an `Indexed` object abstracting objects of the sequence under study
-    - terms_cache: a `dict` of already unfolded terms; it can hold boundary conditions. Optional
+    - terms_cache: a `dict` of already unfolded terms; it can hold boundary 
+        conditions. Optional.
 
     Examples
     ========
 
-    Main track, building the specification for the number of checks of the Quicksort, average case:
+    Main track, building the specification for the number of checks, in average, 
+    of the Quicksort algorithm:
     >>> c,n = IndexedBase('c'), Symbol('n')
     >>> checks_recurrence = Eq(c[n]/(n+1), 2/(n+1) + c[n-1]/n)
     >>> make_recurrence_spec(recurrence_eq=checks_recurrence, indexed=c, index=n)
@@ -82,7 +87,7 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
 
         def unfolding(rhs_term):
             
-            if indexed.args[0] not in rhs_term.free_symbols: return rhs_term
+            if indexed not in rhs_term.free_symbols: return rhs_term
             elif rhs_term in terms_cache: return terms_cache[rhs_term]
             
             matched_lhs_term = take_apart_matched(recurrence_eq.lhs, indexed)
@@ -126,21 +131,19 @@ def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
                 
             return unfolded_term    
             
-        unfolded_rhs_terms = map(unfolding, flatten(unfolding_recurrence_eq.rhs.args, cls=Add))
-        
-        folded_rhs_term = reduce(   lambda folded, addend: Add(folded, addend, evaluate=False), 
-                                    unfolded_rhs_terms)
-        
-        return dict(recurrence_eq=Eq(recurrence_eq.lhs, folded_rhs_term),
-                    indexed=indexed,
-                    index=index,
-                    terms_cache=terms_cache)
+        with map_reduce(on=explode_term_respect_to(unfolding_recurrence_eq.rhs, op_class=Add), 
+                        doer=unfolding, reducer=not_evaluated_Add, initializer=0) as folded_rhs_term:
+            return make_recurrence_spec(
+                        recurrence_eq=Eq(recurrence_eq.lhs, folded_rhs_term),
+                        indexed=indexed,
+                        index=index,
+                        terms_cache=terms_cache)
 
-    return worker(  recurrence_spec['recurrence_eq'],
-                    unfolding_recurrence_spec['recurrence_eq'],
-                    unfolding_recurrence_spec['indexed'],
-                    unfolding_recurrence_spec['index'],
-                    unfolding_recurrence_spec['terms_cache'].copy())
+    return worker(  recurrence_spec.recurrence_eq,
+                    unfolding_recurrence_spec.recurrence_eq,
+                    unfolding_recurrence_spec.indexed,
+                    unfolding_recurrence_spec.index,
+                    unfolding_recurrence_spec.terms_cache.copy())
 
 def indexed_terms_appearing_in(term, indexed, only_subscripts=False, do_traversal=False):
 
@@ -178,7 +181,7 @@ def do_unfolding_steps(recurrence_spec, steps=1, factor_rhs=False,
         unfoldings, working_recurrence_spec = working_recurrence_spec_folded
 
         unfolded_spec = unfold_recurrence(recurrence_spec, working_recurrence_spec)
-        unfoldings.update({step:unfolded_spec})
+        unfoldings[step] = unfolded_spec
 
         return unfoldings, unfolded_spec
     

@@ -1,4 +1,6 @@
 
+from utils import * 
+
 from sympy import *
 from sympy.abc import x, n, z, t, k
 from sympy.core.cache import *
@@ -188,17 +190,6 @@ class MaxColumnSubscriptVisitor:
         return matched[col_wild] if matched and coeff_wild in matched else None
 
     def forZsequence(self, seq): return self.forAsequence(seq)
-
-
-def explode_term_respect_to(term, op_class, deep=False):
-
-    exploded = None
-    if isinstance(term, op_class): 
-        exploded = flatten(term.args, cls=op_class) if deep else term.args
-    else: exploded = [term]
-
-    return exploded
-    
 
 class FreeVarsLocation:
 

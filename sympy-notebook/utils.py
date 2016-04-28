@@ -1,4 +1,6 @@
 
+import functools
+
 from contextlib import contextmanager
 from sympy import *
 
@@ -64,3 +66,22 @@ def bind_Mul_indexed(term, indexed, forbidden_terms=[]):
         yield matched[coeff_w], subscripts # do not splice subscripts, give them structured
     else:
         raise DestructuringError()
+
+
+def explode_term_respect_to(term, op_class, deep=False):
+
+    exploded = [term] # at least we start with the given term since we've to build a list eventually
+
+    if isinstance(term, op_class): 
+        exploded = flatten(term.expand().args, cls=op_class) if deep else term.args
+
+    return exploded
+
+def not_evaluated_Add(*args, **kwds):
+    kwds['evaluate']=False # be sure that evaluation doesn't occur
+    return Add(*args, **kwds)
+
+@contextmanager
+def map_reduce(on, doer, reducer, initializer=None):
+    yield functools.reduce(reducer, map(doer, on), initializer)
+

@@ -1,15 +1,46 @@
 
 from functools import reduce
 from string import Template
+from collections import namedtuple
 
 from sympy import *
 
+RecurrenceSpec = namedtuple('RecurrenceSpec', 'recurrence_eq, index, indexed, terms_cache')
+
 def make_recurrence_spec(**kwds):
-    assert  'recurrence_eq' in kwds and \
-            'index' in kwds and \
-            'indexed' in kwds and \
-            'terms_cache' in kwds, "Missed key in making recurrence spec"
-    return kwds
+    '''
+    Build a full recurrence specification.
+
+    In order to succeed, the following keywords are mandatory according to:
+    - recurrence_eq: an `Eq` object representing the inductive definition
+    - index: a `Symbol` object to instantiate during unfolding 
+    - indexed: an `Indexed` object abstracting objects of the sequence under study
+    - terms_cache: a `dict` of already unfolded terms; it can hold boundary conditions. Optional
+
+    Examples
+    ========
+
+    Main track, building the specification for the number of checks of the Quicksort, average case:
+    >>> c,n = IndexedBase('c'), Symbol('n')
+    >>> checks_recurrence = Eq(c[n]/(n+1), 2/(n+1) + c[n-1]/n)
+    >>> make_recurrence_spec(recurrence_eq=checks_recurrence, indexed=c, index=n)
+    RecurrenceSpec(recurrence_eq=Eq(c[n]/(n + 1), 2/(n + 1) + c[n - 1]/n), index=n, indexed=c, terms_cache={})
+
+    Failure, keyword `index` missing:
+    >>> try:
+    ...     make_recurrence_spec(recurrence_eq=checks_recurrence, indexed=c)
+    ... except TypeError as e: print(e)
+    __new__() missing 1 required positional argument: 'index'
+
+    Failure, foreign keyword provided:
+    >>> try:
+    ...     make_recurrence_spec(recurrence_eq=checks_recurrence, indexed=c, index=n, something_else=5)
+    ... except TypeError as e: print(e)
+    __new__() got an unexpected keyword argument 'something_else'
+    '''
+
+    if 'terms_cache' not in kwds: kwds['terms_cache'] = {}
+    return RecurrenceSpec(**kwds) 
 
 def take_apart_matched(term, indexed):
     

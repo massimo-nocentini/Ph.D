@@ -81,7 +81,49 @@ def not_evaluated_Add(*args, **kwds):
     kwds['evaluate']=False # be sure that evaluation doesn't occur
     return Add(*args, **kwds)
 
+def symbol_of_indexed(indexed):
+    return indexed.args[0]
+
 @contextmanager
 def map_reduce(on, doer, reducer, initializer=None):
     yield functools.reduce(reducer, map(doer, on), initializer)
+
+@contextmanager
+def normalize_eq(eq, constraints):
+    normalized = eq
+    for var, rel in constraints:
+        d = Dummy()
+        sol = solve(Eq(rel, d), var).pop()
+        normalized = normalized.subs(var, sol).subs(d, var)
+    yield normalized
+
+@contextmanager
+def instantiate_eq(eq, constraints):
+    instantiated = eq
+    for var, rel in constraints:
+        instantiated = instantiated.subs(var, rel)
+    yield instantiated
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

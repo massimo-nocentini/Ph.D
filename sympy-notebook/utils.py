@@ -99,7 +99,7 @@ def map_reduce(on, doer, reducer, initializer=None):
 @contextmanager
 def normalize_eq(eq, constraints):
     normalized = eq
-    for var, rel in constraints:
+    for var, rel in constraints.items():
         d = Dummy()
         sol = solve(Eq(rel, d), var).pop()
         normalized = normalized.subs(var, sol).subs(d, var)
@@ -107,8 +107,15 @@ def normalize_eq(eq, constraints):
 
 @contextmanager
 def instantiate_eq(eq, constraints):
+    '''
+    Instantiate the given `Eq` object according to the given constraints.
+
+    Substitutions happen *not* simultaneously, therefore another implementation
+    is possible using the capabilities of `subs`, namely:
+        `eq.subs(constraints, simultaneous=True)`
+    '''
     instantiated = eq
-    for var, rel in constraints:
+    for var, rel in constraints.items():
         instantiated = instantiated.subs(var, rel)
     yield instantiated
 

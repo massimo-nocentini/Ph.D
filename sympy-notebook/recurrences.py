@@ -100,7 +100,8 @@ def unfold_within_rec_spec(normalized_eq, current_rec_spec):
             return terms_cache[rhs_term]
 
         with bind_Mul_indexed(rhs_term, indexed) as (coeff, subscripts):
-            with instantiate_eq(normalized_eq, zip(index, subscripts)) as instantiated_eq:
+            constraints = dict(zip(index, subscripts))
+            with instantiate_eq(normalized_eq, constraints) as instantiated_eq:
                 with bind_Mul_indexed(instantiated_eq.lhs, indexed) as (coeff_lhs, subscripts_lhs):
                     print("normalized {}".format(normalized_eq))
                     print("instantiated {}".format(instantiated_eq))
@@ -133,17 +134,18 @@ def unfold_within_rec_spec(normalized_eq, current_rec_spec):
         
     with map_reduce(on=explode_term_respect_to(unfolding_recurrence_eq.rhs, op_class=Add, deep=True), 
                     doer=unfolding, reducer=not_evaluated_Add, initializer=0) as folded_rhs_term:
-        return make_recurrence_spec( recurrence_eq=Eq(unfolding_recurrence_eq.lhs, folded_rhs_term),
+        return make_recurrence_spec(recurrence_eq=Eq(unfolding_recurrence_eq.lhs, folded_rhs_term),
                 indexed=indexed, index=index, terms_cache=terms_cache)
 
 def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
 
     if not unfolding_recurrence_spec: unfolding_recurrence_spec = recurrence_spec
 
-    with bind_Mul_indexed(recurrence_spec.recurrence_eq.lhs, recurrence_spec.indexed) as (_, subscripts),\
-        normalize_eq(recurrence_spec.recurrence_eq, zip(recurrence_spec.index, subscripts)) as normalized_eq,\
-        copy_recurrence_spec(unfolding_recurrence_spec) as current_rec_spec:
-            return unfold_within_rec_spec(normalized_eq, current_rec_spec)
+    with bind_Mul_indexed(recurrence_spec.recurrence_eq.lhs, recurrence_spec.indexed) as (_, subscripts):
+        constraints = dict(zip(recurrence_spec.index, subscripts))
+        with normalize_eq(recurrence_spec.recurrence_eq, constraints) as normalized_eq,\
+            copy_recurrence_spec(unfolding_recurrence_spec) as current_rec_spec:
+                return unfold_within_rec_spec(normalized_eq, current_rec_spec)
 
 def indexed_terms_appearing_in(term, indexed, only_subscripts=False, do_traversal=False):
 

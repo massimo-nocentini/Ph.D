@@ -211,13 +211,24 @@ def do_unfolding_steps(recurrence_spec, steps=1, factor_rhs=False,
     return result
 
 def unary_subscripts_subsume_sols(recurrence_spec, eqs):
-    index = recurrence_spec.index[0]
+    index, = recurrence_spec.index
     items = []
     for subscripts_eqs in eqs:
         k, v = subscripts_eqs.popitem()
         items.append(v)
     return {index:max(items)}
 
+def doubly_subscripts_subsume_sols(dummy_sym):
+
+    def subsume(recurrence_spec, eqs):
+        n, k = recurrence_spec.index
+        max_k_value = max([subscripts_eqs[k] for subscripts_eqs in eqs])
+        instantiated_lhs = recurrence_spec.recurrence_eq.lhs.subs(k, max_k_value)
+        with bind_Mul_indexed(instantiated_lhs, recurrence_spec.indexed) as (_, (nb, kb)):
+            max_n_value = max([subscripts_eqs[n].subs(dummy_sym, kb) for subscripts_eqs in eqs])
+        return {n:max_n_value, k:max_k_value}
+
+    return subsume
 
 def base_instantiation(recurrence_spec, base_index, subsume_sols):
 

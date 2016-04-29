@@ -69,12 +69,12 @@ def bind_Mul_indexed(term, indexed, forbidden_terms=[]):
         raise DestructuringError()
 
 
-def explode_term_respect_to(term, op_class, deep=False):
+def explode_term_respect_to(term, cls, deep=False):
 
     exploded = [term] # at least we start with the given term since we've to build a list eventually
 
-    if isinstance(term, op_class): 
-        exploded = flatten(term.expand().args, cls=op_class) if deep else term.args
+    if isinstance(term, cls): 
+        exploded = flatten(term.expand().args, cls=cls) if deep else term.args
 
     return exploded
 
@@ -126,7 +126,9 @@ def copy_recurrence_spec(recurrence_spec):
     '''
     yield recurrence_spec._replace(terms_cache=copy(recurrence_spec.terms_cache))
 
-
+@contextmanager
+def fmap_on_dict(doer, on, on_key=True, on_value=True):
+    yield {(doer(k) if on_key else k): (doer(v) if on_value else v) for k,v in on.items()}
 
 
 

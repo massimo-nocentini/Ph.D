@@ -103,9 +103,9 @@ def unfold_within_rec_spec(normalized_eq, current_rec_spec):
             constraints = dict(zip(index, subscripts))
             with instantiate_eq(normalized_eq, constraints) as instantiated_eq:
                 with bind_Mul_indexed(instantiated_eq.lhs, indexed) as (coeff_lhs, subscripts_lhs):
-                    print("normalized {}".format(normalized_eq))
-                    print("instantiated {}".format(instantiated_eq))
-                    print("{} vs {}".format(coeff_lhs, coeff))
+                    #print("normalized {}".format(normalized_eq))
+                    #print("instantiated {}".format(instantiated_eq))
+                    #print("{} vs {}".format(coeff_lhs, coeff))
                     if coeff == coeff_lhs:
                         unfolded_term = instantiated_eq.rhs
                     #else:
@@ -132,7 +132,7 @@ def unfold_within_rec_spec(normalized_eq, current_rec_spec):
         terms_cache[rhs_term] = unfolded_term
         return unfolded_term    
         
-    with map_reduce(on=explode_term_respect_to(unfolding_recurrence_eq.rhs, op_class=Add, deep=True), 
+    with map_reduce(on=explode_term_respect_to(unfolding_recurrence_eq.rhs, cls=Add, deep=True), 
                     doer=unfolding, reducer=not_evaluated_Add, initializer=0) as folded_rhs_term:
         return make_recurrence_spec(recurrence_eq=Eq(unfolding_recurrence_eq.lhs, folded_rhs_term),
                 indexed=indexed, index=index, terms_cache=terms_cache)
@@ -210,38 +210,37 @@ def do_unfolding_steps(recurrence_spec, steps=1, factor_rhs=False,
 
     return result
 
+def unary_subscripts_subsume_sols(recurrence_spec, eqs):
+    index = recurrence_spec.index[0]
+    items = []
+    for subscripts_eqs in eqs:
+        k, v = subscripts_eqs.popitem()
+        items.append(v)
+    return {index:max(items)}
 
-def base_instantiation(unfolded_recurrence_spec, base_index=0):
 
-    def worker(recurrence_eq, indexed, index, terms_cache):
+def base_instantiation(recurrence_spec, base_index, subsume_sols):
 
-        rhs = recurrence_eq.rhs
-        rhs_summands = flatten(rhs.args, cls=Add)
-        
-        def subscript_equation_maker(rhs_term):
-            
-            matched = take_apart_matched(rhs_term, indexed)
-            
-            return Eq(matched['subscript'], base_index) if matched else None
-        
-        valid_equations = filter(lambda x: False if x is None else True, 
-                                 map(subscript_equation_maker, rhs_summands))
-        
-        solutions = map(lambda eq: take_sol(eq, index), valid_equations)
-        
-        satisfying_index = max(solutions)
+    valid_equations = []
+    rhs_summands = explode_term_respect_to(recurrence_spec.recurrence_eq.rhs, cls=Add, deep=True)
+    for rhs_term in rhs_summands:
+        try:
+            with bind_Mul_indexed(rhs_term, recurrence_spec.indexed) as (_, subscripts):
+                eqs = {var: solve(Eq(base, rel), var).pop() 
+                        for var, base, rel in zip(recurrence_spec.index, base_index, subscripts)} 
+                valid_equations.append(eqs)
+        except DestructuringError: 
+            pass
+    
+    solutions = subsume_sols(recurrence_spec, valid_equations)
 
-        def subs_index_into(term): return term.subs(index, satisfying_index)
+    def subs_sols_into(term): 
+        return term.subs(solutions, simultaneous=True)
 
-        new_terms_cache = {subs_index_into(k):subs_index_into(v)
-                            for k,v in terms_cache.items()}
+    with fmap_on_dict(doer=subs_sols_into, on=recurrence_spec.terms_cache) as new_terms_cache:
+        return make_recurrence_spec(recurrence_eq=subs_sols_into(recurrence_spec.recurrence_eq),
+                    indexed=recurrence_spec.indexed, index=solutions, terms_cache=new_terms_cache)
 
-        return dict(recurrence_eq=subs_index_into(recurrence_eq),
-                    indexed=indexed,
-                    index=satisfying_index,
-                    terms_cache=new_terms_cache)
-
-    return worker(**unfolded_recurrence_spec)
 
 def project_recurrence_spec(recurrence_spec, **props):
     

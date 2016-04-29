@@ -88,16 +88,31 @@ def not_evaluated_Add(*args, **kwds):
 def symbol_of_indexed(indexed):
     '''
     Return the `Symbol` object of an indexable term, otherwise return the given argument as is.
+
+    To be honest, any iterable with at least one element works; maybe we should do `isinstance(...)`
+    checks to properly implement this function.
     '''
-    return indexed.args[0] if (isinstance(indexed, Indexed) 
-        or isinstance(indexed, IndexedBase)) else indexed
+    try:
+        indexed_sym, *rest = indexed
+        return indexed_sym
+    except Exception:
+        return indexed
 
 @contextmanager
 def map_reduce(on, doer, reducer, initializer=None):
+    '''
+    Map-Reduce pipeline.
+    '''
     yield functools.reduce(reducer, map(doer, on), initializer)
 
 @contextmanager
 def normalize_eq(eq, constraints):
+    '''
+    Normalize an equation according to its `lhs`.
+
+    I consume an `Eq` object and, assuming in the `lhs` there's a term that defines the `rhs`,
+    then I return an `Eq` object such that subscripts are in vanilla form, no offsets appear.
+    '''
     normalized = eq
     for var, rel in constraints.items():
         d = Dummy()
@@ -134,6 +149,11 @@ def copy_recurrence_spec(recurrence_spec, **kwds):
 
 @contextmanager
 def fmap_on_dict(doer, on, on_key=True, on_value=True):
+    '''
+    Apply `doer` to the given mapping, inspired to `Functor`s in Haskell.
+
+    It is possible to choose to apply `doer` to both (key, value) pair or only partially.
+    '''
     yield {(doer(k) if on_key else k): (doer(v) if on_value else v) for k,v in on.items()}
 
 

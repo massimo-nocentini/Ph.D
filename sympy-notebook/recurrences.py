@@ -31,8 +31,24 @@ def make_recurrence_spec(**kwds):
     of the Quicksort algorithm:
     >>> c,n = IndexedBase('c'), Symbol('n')
     >>> checks_recurrence = Eq(c[n]/(n+1), 2/(n+1) + c[n-1]/n)
-    >>> make_recurrence_spec(recurrence_eq=checks_recurrence, indexed=c, index=n)
+    >>> m = make_recurrence_spec(recurrence_eq=checks_recurrence, indexed=c, index=n)
+    >>> m
     RecurrenceSpec(recurrence_eq=Eq(c[n]/(n + 1), 2/(n + 1) + c[n - 1]/n), index=n, indexed=c, terms_cache={})
+
+    Making an identical recurrence spec, namely a completely new object although equals component wise:
+    >>> another_m = make_recurrence_spec(recurrence_eq=checks_recurrence, indexed=c, index=n)
+    >>> m is another_m
+    False
+    >>> m == another_m
+    True
+
+    Copying should behave the same as making a "clone" component wise:
+    >>> from copy import copy
+    >>> another_m = copy(m)
+    >>> m is another_m
+    False
+    >>> m == another_m
+    True
 
     Failure, keyword `index` missing:
     >>> try:
@@ -47,7 +63,9 @@ def make_recurrence_spec(**kwds):
     __new__() got an unexpected keyword argument 'something_else'
     '''
 
-    if 'terms_cache' not in kwds: kwds['terms_cache'] = {}
+    if 'terms_cache' not in kwds: 
+        kwds['terms_cache'] = {} # empty cache if not given
+
     return RecurrenceSpec(**kwds) 
 
 def take_apart_matched(term, indexed):
@@ -68,65 +86,64 @@ def take_apart_matched(term, indexed):
 
     return result
 
+def unfold_within_rec_spec(normalized_eq, current_rec_spec):
+
+    indexed, index, = current_rec_spec.indexed, current_rec_spec.index
+    unfolding_recurrence_eq = current_rec_spec.recurrence_eq 
+    terms_cache = current_rec_spec.terms_cache
+
+    def unfolding(rhs_term):
+        
+        if symbol_of_indexed(indexed) not in rhs_term.free_symbols: 
+            return rhs_term
+        elif rhs_term in terms_cache: 
+            return terms_cache[rhs_term]
+
+        with bind_Mul_indexed(rhs_term, indexed) as (coeff, subscripts):
+            with instantiate_eq(normalized_eq, zip(index, subscripts)) as instantiated_eq:
+                with bind_Mul_indexed(instantiated_eq.lhs, indexed) as (coeff_lhs, subscripts_lhs):
+                    print("normalized {}".format(normalized_eq))
+                    print("instantiated {}".format(instantiated_eq))
+                    print("{} vs {}".format(coeff_lhs, coeff))
+                    if coeff == coeff_lhs:
+                        unfolded_term = instantiated_eq.rhs
+                    #else:
+                        #plain_eq = Eq(instantiated_eq.lhs/coeff_lhs, instantiated_eq.rhs/coeff_lhs)
+
+        #if rhs_term not in terms_cache:
+                #matched_norm_lhs = take_apart_matched(norm_lhs, indexed)
+                #generalized_rhs_term = Mul(lhs_normalizer(recurrence_eq.rhs), 
+                    #Integer(1)/matched_norm_lhs['coeff'])
+
+                #substitutions = {}
+                
+                #for subscript in indexed_terms_appearing_in(
+                        #rhs_term, indexed, only_subscripts=True, do_traversal=True):
+                
+                    #subscripted_term = indexed[subscript]
+                    #if subscripted_term not in substitutions and subscripted_term not in terms_cache:
+                        #subterm = generalized_rhs_term.replace(index, subscript)
+                        #substitutions.update({subscripted_term: subterm})
+
+                #terms_cache.update(substitutions)
+                #unfolded_term = rhs_term.subs(terms_cache, simultaneous=True)
+                
+        terms_cache[rhs_term] = unfolded_term
+        return unfolded_term    
+        
+    with map_reduce(on=explode_term_respect_to(unfolding_recurrence_eq.rhs, op_class=Add, deep=True), 
+                    doer=unfolding, reducer=not_evaluated_Add, initializer=0) as folded_rhs_term:
+        return make_recurrence_spec( recurrence_eq=Eq(unfolding_recurrence_eq.lhs, folded_rhs_term),
+                indexed=indexed, index=index, terms_cache=terms_cache)
 
 def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
 
     if not unfolding_recurrence_spec: unfolding_recurrence_spec = recurrence_spec
 
-    indexed, index, = unfolding_recurrence_spec.indexed, unfolding_recurrence_spec.index
-
-    def worker(normalized_eq, unfolding_recurrence_eq, terms_cache):
-
-        def unfolding(rhs_term):
-            
-            if symbol_of_indexed(indexed) not in rhs_term.free_symbols: 
-                return rhs_term
-            elif rhs_term in terms_cache: 
-                return terms_cache[rhs_term]
-
-            with bind_Mul_indexed(rhs_term, indexed) as (coeff, subscripts):
-                with instantiate_eq(normalized_eq, zip(index, subscripts)) as instantiated_eq:
-                    with bind_Mul_indexed(instantiated_eq.lhs, indexed) as (coeff_lhs, subscripts_lhs):
-                        print("normalized {}".format(normalized_eq))
-                        print("instantiated {}".format(instantiated_eq))
-                        print("{} vs {}".format(coeff_lhs, coeff))
-                        if coeff == coeff_lhs:
-                            unfolded_term = instantiated_eq.rhs
-                        #else:
-                            #plain_eq = Eq(instantiated_eq.lhs/coeff_lhs, instantiated_eq.rhs/coeff_lhs)
-
-            #if rhs_term not in terms_cache:
-                    #matched_norm_lhs = take_apart_matched(norm_lhs, indexed)
-                    #generalized_rhs_term = Mul(lhs_normalizer(recurrence_eq.rhs), 
-                        #Integer(1)/matched_norm_lhs['coeff'])
-
-                    #substitutions = {}
-                    
-                    #for subscript in indexed_terms_appearing_in(
-                            #rhs_term, indexed, only_subscripts=True, do_traversal=True):
-                    
-                        #subscripted_term = indexed[subscript]
-                        #if subscripted_term not in substitutions and subscripted_term not in terms_cache:
-                            #subterm = generalized_rhs_term.replace(index, subscript)
-                            #substitutions.update({subscripted_term: subterm})
-
-                    #terms_cache.update(substitutions)
-                    #unfolded_term = rhs_term.subs(terms_cache, simultaneous=True)
-                    
-            terms_cache[rhs_term] = unfolded_term
-            return unfolded_term    
-            
-        with map_reduce(on=explode_term_respect_to(unfolding_recurrence_eq.rhs, op_class=Add, deep=True), 
-                        doer=unfolding, reducer=not_evaluated_Add, initializer=0) as folded_rhs_term:
-            return make_recurrence_spec(
-                        recurrence_eq=Eq(unfolding_recurrence_eq.lhs, folded_rhs_term),
-                        indexed=indexed, index=index, terms_cache=terms_cache)
-
-    with bind_Mul_indexed(recurrence_spec.recurrence_eq.lhs, indexed) as (_, subscripts):
-        with normalize_eq(recurrence_spec.recurrence_eq, zip(index, subscripts)) as normalized_eq:
-            return worker(  normalized_eq,
-                            unfolding_recurrence_spec.recurrence_eq,
-                            unfolding_recurrence_spec.terms_cache.copy())
+    with bind_Mul_indexed(recurrence_spec.recurrence_eq.lhs, recurrence_spec.indexed) as (_, subscripts),\
+        normalize_eq(recurrence_spec.recurrence_eq, zip(recurrence_spec.index, subscripts)) as normalized_eq,\
+        copy_recurrence_spec(unfolding_recurrence_spec) as current_rec_spec:
+            return unfold_within_rec_spec(normalized_eq, current_rec_spec)
 
 def indexed_terms_appearing_in(term, indexed, only_subscripts=False, do_traversal=False):
 

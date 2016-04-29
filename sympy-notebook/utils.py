@@ -1,7 +1,8 @@
 
 import functools
-
+from copy import copy
 from contextlib import contextmanager
+
 from sympy import *
 
 
@@ -78,11 +79,18 @@ def explode_term_respect_to(term, op_class, deep=False):
     return exploded
 
 def not_evaluated_Add(*args, **kwds):
+    '''
+    Build an `Add` object, *not evaluated*, regardless any value for the keyword `evaluate`.
+    '''
     kwds['evaluate']=False # be sure that evaluation doesn't occur
     return Add(*args, **kwds)
 
 def symbol_of_indexed(indexed):
-    return indexed.args[0]
+    '''
+    Return the `Symbol` object of an indexable term, otherwise return the given argument as is.
+    '''
+    return indexed.args[0] if (isinstance(indexed, Indexed) 
+        or isinstance(indexed, IndexedBase)) else indexed
 
 @contextmanager
 def map_reduce(on, doer, reducer, initializer=None):
@@ -104,6 +112,12 @@ def instantiate_eq(eq, constraints):
         instantiated = instantiated.subs(var, rel)
     yield instantiated
 
+@contextmanager
+def copy_recurrence_spec(recurrence_spec):
+    '''
+    Build a shallow copy of the given recurrence spec, `terms_cache` is a shallow copy too.
+    '''
+    yield recurrence_spec._replace(terms_cache=copy(recurrence_spec.terms_cache))
 
 
 

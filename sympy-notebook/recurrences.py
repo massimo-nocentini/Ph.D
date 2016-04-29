@@ -334,7 +334,10 @@ def take_sol(*args, sol_index=0):
     return sols[sol_index]
 
 def subsume_cache(recurrence_spec):
-
+    '''
+    What do I do? It seems a reduce process to eliminate redundant elements from the cache...
+    For now we leave it as it is, if I found it in other place then it we'll be refactored.
+    '''
     recurrence_eq, index, indexed, terms_cache = (
         recurrence_spec['recurrence_eq'], 
         recurrence_spec['index'], 

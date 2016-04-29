@@ -162,18 +162,16 @@ def indexed_terms_appearing_in(term, indexed, only_subscripts=False, do_traversa
     return indexed_terms_set
 
 
-def factor_rhs_unfolded_rec(unfolded_recurrence_spec):
+def factor_rhs_unfolded_rec(recurrence_spec):
 
-    unfolded_recurrence_eq = unfolded_recurrence_spec['recurrence_eq']
+    rec_eq = recurrence_spec.recurrence_eq
 
-    indexed_terms_in_rec = indexed_terms_appearing_in(
-        unfolded_recurrence_eq.rhs, unfolded_recurrence_spec['indexed'])
+    indexed_terms_in_rec = indexed_terms_appearing_in(rec_eq.rhs, recurrence_spec.indexed)
 
-    factored_spec = dict(**unfolded_recurrence_spec)
-    factored_spec.update(recurrence_eq=Eq(unfolded_recurrence_eq.lhs, 
-        Poly(unfolded_recurrence_eq.rhs, *list(indexed_terms_in_rec)).args[0]))
+    factored_rec_eq = Eq(rec_eq.lhs, Poly(rec_eq.rhs, *list(indexed_terms_in_rec)).args[0])
 
-    return factored_spec
+    with copy_recurrence_spec(recurrence_spec, recurrence_eq=factored_rec_eq) as factored_recurrence_spec:
+        return factored_recurrence_spec
 
 def do_unfolding_steps(recurrence_spec, steps=1, factor_rhs=False, 
                         keep_intermediate_unfoldings=False, first_order=True):
@@ -262,37 +260,41 @@ def project_recurrence_spec(recurrence_spec, **props):
     return projected[0] if len(projected) == 1 else tuple(projected)
 
 
-def times_higher_order_operator(recurrence_spec, 
+def times_higher_order_operator(
+        recurrence_spec, 
+        base_index,
+        subsume_sols,
         times_range=range(6), 
         operator=lambda *args: tuple(args), 
         instantiate=True, 
         include_last_terms_cache=False,
-        first_order=True):
+        first_order=True,):
 
-    initial_terms_cache = recurrence_spec['terms_cache'].copy()
+    initial_terms_cache = recurrence_spec.terms_cache.copy()
 
     def worker(working_steps):
 
         unfolded_evaluated_spec = do_unfolding_steps(
-            recurrence_spec, working_steps, factor_rhs=True, 
-            first_order=first_order)
+            recurrence_spec, working_steps, factor_rhs=True, first_order=first_order)
 
-        recurrence_spec['terms_cache'].update(unfolded_evaluated_spec['terms_cache'])
+        recurrence_spec.terms_cache.update(unfolded_evaluated_spec.terms_cache)
 
         processed_recurrence_spec = unfolded_evaluated_spec
-        if instantiate: processed_recurrence_spec = base_instantiation(processed_recurrence_spec)
+        if instantiate: 
+            processed_recurrence_spec = base_instantiation(
+                processed_recurrence_spec, base_index, subsume_sols)
 
         return operator(processed_recurrence_spec, working_steps)
 
     mapped = map(worker, times_range)
 
-    last_terms_cache = recurrence_spec['terms_cache'].copy()
-    recurrence_spec['terms_cache'] = initial_terms_cache
+    last_terms_cache = recurrence_spec.terms_cache.copy()
+    recurrence_spec.terms_cache.update(initial_terms_cache)
 
     return (mapped, last_terms_cache) if include_last_terms_cache else mapped 
 
 
-def repeated_instantiating(base_instantiated_rec_spec):
+def repeated_instantiating(recurrence_spec):
     
     def worker(previous_terms_cache, do_one_more_step):
     
@@ -315,15 +317,16 @@ def repeated_instantiating(base_instantiated_rec_spec):
         return worker(current_terms_cache, do_one_more_step)
 
     
-    fully_instantiated_terms_cache = worker(base_instantiated_rec_spec['terms_cache'], 
+    fully_instantiated_terms_cache = worker(recurrence_spec.terms_cache, 
                                             do_one_more_step=True)
     
-    fully_instantiated_rec_eq = base_instantiated_rec_spec['recurrence_eq'].subs(
+    fully_instantiated_rec_eq = recurrence_spec.recurrence_eq.subs(
         fully_instantiated_terms_cache)
     
-    return dict(recurrence_eq=fully_instantiated_rec_eq, 
-                indexed=base_instantiated_rec_spec['indexed'],
-                index=base_instantiated_rec_spec['index'],
+    return make_recurrence_spec(
+                recurrence_eq=fully_instantiated_rec_eq, 
+                indexed=recurrence_spec.indexed,
+                index=recurrence_spec.index,
                 terms_cache=fully_instantiated_terms_cache)
 
 def take_sol(*args, sol_index=0):
@@ -414,9 +417,8 @@ def fix_combination(eqs, adjust, fix):
 
 def latex_array_env(*args, **kwd):
     
-    def eqnarray_entry_for_eq(processed_spec, working_steps):
-        processed_eq = project_recurrence_spec(processed_spec, recurrence_eq=True)
-        return latex(processed_eq) + r"\\"
+    def eqnarray_entry_for_eq(recurrence_spec, working_steps):
+        return latex(recurrence_spec.recurrence_eq) + r"\\"
 
     mapped = times_higher_order_operator(*args, operator=eqnarray_entry_for_eq, **kwd)
     template = Template(r"""\begin{array}{c}$content\end{array}""")

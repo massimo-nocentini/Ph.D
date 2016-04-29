@@ -120,11 +120,17 @@ def instantiate_eq(eq, constraints):
     yield instantiated
 
 @contextmanager
-def copy_recurrence_spec(recurrence_spec):
+def copy_recurrence_spec(recurrence_spec, **kwds):
     '''
-    Build a shallow copy of the given recurrence spec, `terms_cache` is a shallow copy too.
+    Build a shallow copy of the given recurrence spec, possibly updating it as desired.
+    
+    Updating happens in the sense of `namedtuple._replace`; however, if keyword `terms_cache` 
+    isn't provided, then a shallow copy of `recurrence_spec.terms_cache` is attached to the returned spec.
     '''
-    yield recurrence_spec._replace(terms_cache=copy(recurrence_spec.terms_cache))
+    if 'terms_cache' not in kwds:
+        kwds['terms_cache'] = copy(recurrence_spec.terms_cache)
+
+    yield recurrence_spec._replace(**kwds)
 
 @contextmanager
 def fmap_on_dict(doer, on, on_key=True, on_value=True):

@@ -7,14 +7,14 @@ import math
 
 from sympy import *
 
-def colour_matrix(matrix, colors={0:'blue', 1:'orange'}, strait=False):
+def colour_matrix(matrix, colors={0:'blue', 1:'orange'}, strait=False, filename=None):
 
     fig = plt.figure()
     usual_layout = fig.add_subplot(111, aspect='equal')
 
     radius = .55
     rows = matrix.rows
-    coordinates = {(r,c):(-r//2 + c, -r) if strait else (-r/2 + c, -r)
+    coordinates = {(r,c):(-r//2 + c, -r) if strait else (-r/2 + c, -r) # // vs /
                     for r in range(rows) for c in range(r+1)}
 
 
@@ -31,7 +31,7 @@ def colour_matrix(matrix, colors={0:'blue', 1:'orange'}, strait=False):
     usual_layout.set_autoscale_on(True)
     usual_layout.set_axis_off()
     
-    #fig.savefig('circles.svg', dpi=600)#, bbox_inches='tight')
+    if filename: fig.savefig(filename, dpi=600)#, bbox_inches='tight')
 
     return fig
     

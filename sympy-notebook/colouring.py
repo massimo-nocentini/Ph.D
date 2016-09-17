@@ -7,37 +7,34 @@ import math
 
 from sympy import *
 
-def colour_matrix(matrix, colors={0:'blue', 1:'orange'}):
+def colour_matrix(matrix, colors={0:'blue', 1:'orange'}, strait=False):
 
-    fig3 = plt.figure()
-    ax3 = fig3.add_subplot(111, aspect='equal')
+    fig = plt.figure()
+    usual_layout = fig.add_subplot(111, aspect='equal')
 
-    radius = .6
+    radius = .55
     rows = matrix.rows
-    coordinates = {}
+    coordinates = {(r,c):(-r//2 + c, -r) if strait else (-r/2 + c, -r)
+                    for r in range(rows) for c in range(r+1)}
 
-    for r in range(rows):
-        for c in range(r+1):
-            coordinates[(r,c)] = (-r/2+c, -r)
-            #coordinates.append((c, -r))
 
     for (mr,mc), co in coordinates.items():
         c, r = co
-        #color = "orange" if c > -(-1)/2 else "blue"
         color = colors[matrix[mr, mc]]
-        #a = .4 if r > -rows/2 else 1
         circle = patches.Circle(co, radius, facecolor=color, alpha=1, fill=True) 
                                 #joinstyle='miter',fill=False,hatch='*')
         #if c is -3: circle.set_visible(False)
-        ax3.add_patch(circle)
+        usual_layout.add_patch(circle)
 
-    ax3.set_xlim(-((rows+2*radius)/2),(rows+2*radius)/2)
-    ax3.set_ylim(-rows,1)
-    #ax3.set_autoscale_on(True)
-    ax3.set_axis_off()
-    return fig3
+    usual_layout.set_xlim(-((rows+2*radius)/2),(rows+2*radius)/2)
+    usual_layout.set_ylim(-rows,1)
+    usual_layout.set_autoscale_on(True)
+    usual_layout.set_axis_off()
     
-    #fig3.savefig('circles.svg', dpi=600)#, bbox_inches='tight')
+    #fig.savefig('circles.svg', dpi=600)#, bbox_inches='tight')
+
+    return fig
+    
 
 def triangle_copy(source, target, point):
     pr, pc = point

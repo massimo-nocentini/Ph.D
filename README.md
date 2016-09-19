@@ -5,6 +5,10 @@ This project aims to implement a prototype to unfold recurrence
 relations *symbolically*. Our definitions are built on top of *SymPy*
 and target Python **3.5.1**.
 
+An analysis of Quicksort algorithm, of the average number of checks and
+swaps, with a first symbolic application of *unfolding*, can be found
+[here][quicksort].
+ 
 First, a prototype where recurrences depending on *only one* index 
 is described in [this notebook][recurrences-unfolding], 
 where unfoldings are applied to some well known recurrence relations, 
@@ -39,3 +43,4 @@ present a basic introduction to [SymPy] for students.
 [companion]:http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/master/sympy-notebook/binomial-transform-applied-to-fibonacci-numbers.ipynb?flush_cache=true
 [catalan-modular]:http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/master/sympy-notebook/colouring-matrices.ipynb?flush_cache=true
 [doubly-indexed]:http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/master/sympy-notebook/matrix-recurrences-unfolding.ipynb?flush_cache=true
+[quicksort]:http://nbviewer.jupyter.org/github/massimo-nocentini/recurrences-unfolding/blob/refactoring/notebooks/quicksort-average-analysis.ipynb

@@ -1,14 +1,142 @@
 
+import copy
 from functools import reduce
 from string import Template
 from collections import namedtuple
 
 from sympy import *
+from sympy.printing.latex import latex
 
 from utils import *
 
+from destructuring import bind_Mul_indexed
+from equations import isolated_lhs_normal_form, instantiate_eq
+from terms import explode_term_respect_to, not_evaluated_Add, symbol_of_Indexed
+
 RecurrenceSpec = namedtuple('RecurrenceSpec', 
                             'recurrence_eq, index, indexed, terms_cache')
+
+class recurrence_spec:
+
+    def __init__(self, recurrence_eq, recurrence_symbol, variables, terms_cache={}):
+        self.recurrence_eq = recurrence_eq
+        self.indexed = recurrence_symbol
+        self.index = variables # rename indexes
+        self.terms_cache = terms_cache
+        
+    def description(self, include_terms_cache=False):
+        from IPython.display import Markdown
+        src = 'Recurrence formal symbol ${fs}$, indexed by ${variables}$, in relation:\n\n$${eq}$$'
+        src = src.format(   fs=latex(self.indexed), 
+                            variables=", ".join(map(latex, self.index)), 
+                            eq=latex(self.recurrence_eq))
+
+        if include_terms_cache and self.terms_cache: 
+            src += "\n\nwith unfolded terms:\n\n$${terms}$$".format(terms=
+                    latex({Eq(k, v) for k, v in self.terms_cache.items()}))
+
+        return Markdown(src)
+
+
+    def unfold(self, steps=1, factor_rhs=False, first_order=True):
+            
+        def first_order_reducer(folding_recurrence_spec, step): 
+            return folding_recurrence_spec.rewrite(according_to=self)
+        
+        def second_order_reducer(folding_recurrence_spec, step):
+            return folding_recurrence_spec.rewrite(according_to=folding_recurrence_spec)
+
+        unfolded_recurrence_spec = reduce(
+            first_order_reducer if first_order else second_order_reducer, 
+            range(steps), self)
+        
+        return factor_rhs_unfolded_rec(unfolded_recurrence_spec) if factor_rhs else unfolded_recurrence_spec
+
+    def rewrite(self, according_to):
+
+        print('in `rewrite` function')
+
+        eq, index, indexed = according_to.recurrence_eq, according_to.index, according_to.indexed
+
+        # the following normal form could be computed in the ctor?
+        with bind_Mul_indexed(eq.lhs, indexed) as (coeff, subscripts): 
+            subscripts_rel = dict(zip(index, subscripts))
+            with isolated_lhs_normal_form(eq, subscripts_rel) as eq_in_nf:
+                #copy_recurrence_spec(unfolding_recurrence_spec) as current_rec_spec:
+                #return unfold_within_rec_spec(eq_in_nf, current_rec_spec)
+                normalized_eq = eq_in_nf
+
+        print(eq_in_nf)
+
+        indexed, index = self.indexed, self.index
+        unfolding_recurrence_eq = self.recurrence_eq 
+        terms_cache = copy.copy(self.terms_cache)
+
+        def unfolding(rhs_term):
+            
+
+            #print(rhs_term, rhs_term.free_symbols)
+            #print(symbol_of_Indexed(indexed))
+            if symbol_of_Indexed(indexed) not in rhs_term.free_symbols: 
+                #    print('{} doesn\'t need unfolding'.format(rhs_term))
+                return rhs_term
+            elif rhs_term in terms_cache: 
+                #    print('{} already unfolded'.format(rhs_term))
+                return terms_cache[rhs_term]
+
+            print('Unfolding of {}'.format(rhs_term))
+            unfolded_term = None
+            with bind_Mul_indexed(rhs_term, indexed) as (coeff, subscripts):
+                constraints = dict(zip(index, subscripts))
+                with instantiate_eq(normalized_eq, constraints) as instantiated_eq, \
+                     bind_Mul_indexed(instantiated_eq.lhs, indexed) as (coeff_lhs, _):
+                        #print("normalized {}".format(normalized_eq))
+                        #print("instantiated {}".format(instantiated_eq))
+                        #print("{} vs {}".format(coeff_lhs, coeff))
+                        unfolded_term = instantiated_eq.rhs 
+                        unfolded_term /= 1 if coeff == coeff_lhs else coeff_lhs
+                        #else:
+                            #plain_eq = Eq(instantiated_eq.lhs/coeff_lhs, instantiated_eq.rhs/coeff_lhs)
+
+            #if rhs_term not in terms_cache:
+                    #matched_norm_lhs = take_apart_matched(norm_lhs, indexed)
+                    #generalized_rhs_term = Mul(lhs_normalizer(recurrence_eq.rhs), 
+                        #Integer(1)/matched_norm_lhs['coeff'])
+
+                    #substitutions = {}
+                    
+                    #for subscript in indexed_terms_appearing_in(
+                            #rhs_term, indexed, only_subscripts=True, do_traversal=True):
+                    
+                        #subscripted_term = indexed[subscript]
+                        #if subscripted_term not in substitutions and subscripted_term not in terms_cache:
+                            #subterm = generalized_rhs_term.replace(index, subscript)
+                            #substitutions.update({subscripted_term: subterm})
+
+                    #terms_cache.update(substitutions)
+                    #unfolded_term = rhs_term.subs(terms_cache, simultaneous=True)
+                    
+
+            #if unfolded_term: terms_cache[rhs_term] = unfolded_term
+            #else: unfolded_term = rhs_term 
+
+            terms_cache[rhs_term] = unfolded_term
+            print(unfolded_term)
+
+            return unfolded_term    
+            
+        rhs_terms = explode_term_respect_to(unfolding_recurrence_eq.rhs, cls=Add, deep=True)
+        print(rhs_terms)
+        with map_reduce(on=rhs_terms, doer=unfolding, 
+                        reducer=lambda reduced, term: not_evaluated_Add(reduced, term), 
+                        initializer=Integer(0)) as folded_rhs_term:
+            print(folded_rhs_term)
+            result = recurrence_spec(recurrence_eq=Eq(unfolding_recurrence_eq.lhs, folded_rhs_term), 
+                                    recurrence_symbol=indexed, 
+                                    variables=index, 
+                                    terms_cache=terms_cache)
+            print(result)
+            return result
 
 def make_index(*args):
     return args # little trick to avoid writing an index as (x, ), for some `Symbol` x.
@@ -86,66 +214,7 @@ def take_apart_matched(term, indexed):
 
     return result
 
-def unfold_within_rec_spec(normalized_eq, current_rec_spec):
 
-    indexed, index, = current_rec_spec.indexed, current_rec_spec.index
-    unfolding_recurrence_eq = current_rec_spec.recurrence_eq 
-    terms_cache = current_rec_spec.terms_cache
-
-    def unfolding(rhs_term):
-        
-        if symbol_of_indexed(indexed) not in rhs_term.free_symbols: 
-            return rhs_term
-        elif rhs_term in terms_cache: 
-            return terms_cache[rhs_term]
-
-        with bind_Mul_indexed(rhs_term, indexed) as (coeff, subscripts):
-            constraints = dict(zip(index, subscripts))
-            with instantiate_eq(normalized_eq, constraints) as instantiated_eq:
-                with bind_Mul_indexed(instantiated_eq.lhs, indexed) as (coeff_lhs, subscripts_lhs):
-                    #print("normalized {}".format(normalized_eq))
-                    #print("instantiated {}".format(instantiated_eq))
-                    #print("{} vs {}".format(coeff_lhs, coeff))
-                    if coeff == coeff_lhs:
-                        unfolded_term = instantiated_eq.rhs
-                    #else:
-                        #plain_eq = Eq(instantiated_eq.lhs/coeff_lhs, instantiated_eq.rhs/coeff_lhs)
-
-        #if rhs_term not in terms_cache:
-                #matched_norm_lhs = take_apart_matched(norm_lhs, indexed)
-                #generalized_rhs_term = Mul(lhs_normalizer(recurrence_eq.rhs), 
-                    #Integer(1)/matched_norm_lhs['coeff'])
-
-                #substitutions = {}
-                
-                #for subscript in indexed_terms_appearing_in(
-                        #rhs_term, indexed, only_subscripts=True, do_traversal=True):
-                
-                    #subscripted_term = indexed[subscript]
-                    #if subscripted_term not in substitutions and subscripted_term not in terms_cache:
-                        #subterm = generalized_rhs_term.replace(index, subscript)
-                        #substitutions.update({subscripted_term: subterm})
-
-                #terms_cache.update(substitutions)
-                #unfolded_term = rhs_term.subs(terms_cache, simultaneous=True)
-                
-        terms_cache[rhs_term] = unfolded_term
-        return unfolded_term    
-        
-    with map_reduce(on=explode_term_respect_to(unfolding_recurrence_eq.rhs, cls=Add, deep=True), 
-                    doer=unfolding, reducer=not_evaluated_Add, initializer=0) as folded_rhs_term:
-        return make_recurrence_spec(recurrence_eq=Eq(unfolding_recurrence_eq.lhs, folded_rhs_term),
-                indexed=indexed, index=index, terms_cache=terms_cache)
-
-def unfold_recurrence(recurrence_spec, unfolding_recurrence_spec=None):
-
-    if not unfolding_recurrence_spec: unfolding_recurrence_spec = recurrence_spec
-
-    with bind_Mul_indexed(recurrence_spec.recurrence_eq.lhs, recurrence_spec.indexed) as (_, subscripts):
-        constraints = dict(zip(recurrence_spec.index, subscripts))
-        with normalize_eq(recurrence_spec.recurrence_eq, constraints) as normalized_eq,\
-            copy_recurrence_spec(unfolding_recurrence_spec) as current_rec_spec:
-                return unfold_within_rec_spec(normalized_eq, current_rec_spec)
 
 def indexed_terms_appearing_in(term, indexed, only_subscripts=False, do_traversal=False):
 
@@ -173,40 +242,20 @@ def factor_rhs_unfolded_rec(recurrence_spec):
     with copy_recurrence_spec(recurrence_spec, recurrence_eq=factored_rec_eq) as factored_recurrence_spec:
         return factored_recurrence_spec
 
-def do_unfolding_steps(recurrence_spec, steps=1, factor_rhs=False, 
-                        keep_intermediate_unfoldings=False, first_order=True):
+def do_unfolding_steps(recurrence_spec, steps=1, factor_rhs=False, first_order=True):
         
-    def first_order_reducer(working_recurrence_spec_folded, step): 
-
-        unfoldings, working_recurrence_spec = working_recurrence_spec_folded
-
-        unfolded_spec = unfold_recurrence(recurrence_spec, working_recurrence_spec)
-        unfoldings[step] = unfolded_spec
-
-        return unfoldings, unfolded_spec
+    def first_order_reducer(folding_recurrence_spec, step): 
+        return unfold_recurrence(recurrence_spec, folding_recurrence_spec)
     
-    def second_order_reducer(working_recurrence_spec_folded, step): 
+    def second_order_reducer(folding_recurrence_spec, step): 
+        return unfold_recurrence(folding_recurrence_spec, folding_recurrence_spec)
 
-        unfoldings, working_recurrence_spec = working_recurrence_spec_folded
-
-        unfolded_spec = unfold_recurrence(working_recurrence_spec, working_recurrence_spec)
-        unfoldings.update({step:unfolded_spec})
-
-        return unfoldings, unfolded_spec
-
-    unfoldings, unfolded_recurrence_spec = reduce(
+    unfolded_recurrence_spec = reduce(
         first_order_reducer if first_order else second_order_reducer, 
-        range(steps), ({}, recurrence_spec))
+        range(steps), recurrence_spec)
     
-    result = None
-    if keep_intermediate_unfoldings:
-        result = {k:factor_rhs_unfolded_rec(v) for k,v in unfoldings.items()} \
-            if factor_rhs else unfoldings
-    else:
-        result = factor_rhs_unfolded_rec(unfolded_recurrence_spec) \
-            if factor_rhs else unfolded_recurrence_spec
+    return factor_rhs_unfolded_rec(unfolded_recurrence_spec) if factor_rhs else unfolded_recurrence_spec
 
-    return result
 
 def unary_subscripts_subsume_sols(recurrence_spec, eqs):
     index, = recurrence_spec.index

@@ -1,5 +1,6 @@
 
-from sympy import flatten, Add
+from sympy import flatten, Add, preorder_traversal
+from destructuring import *
 
 def explode_term_respect_to(term, cls, deep=False):
 
@@ -33,3 +34,15 @@ def symbol_of_Indexed(indexed):
 
     return result
 
+def indexed_terms_appearing_in(term, indexed, only_subscripts=False, do_traversal=False):
+
+    indexed_terms_set = set()
+
+    for subterm in preorder_traversal(term) if do_traversal else flatten(term.args, cls=Add):
+        try:
+            with bind_Mul_indexed(subterm, indexed) as (_, subscripts):
+                indexed_terms_set.add(subscripts if only_subscripts else indexed[subscripts])
+        except DestructuringError:
+            continue
+
+    return list(indexed_terms_set)

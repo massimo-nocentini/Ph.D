@@ -67,3 +67,6 @@ def bind_Mul_indexed(term, indexed, forbidden_terms=[]):
         yield matched[coeff_w], subscripts # do not splice subscripts, give them packed
     else:
         raise DestructuringError()
+
+
+

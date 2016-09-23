@@ -59,12 +59,12 @@ class recurrence_spec:
         eq, index, indexed = according_to.recurrence_eq, according_to.index, according_to.indexed
 
         # the following normal form could be computed in the ctor?
-        with bind_Mul_indexed(eq.lhs, indexed) as (coeff, subscripts): 
-            subscripts_rel = dict(zip(index, subscripts))
-            with isolated_lhs_normal_form(eq, subscripts_rel) as eq_in_nf:
-                #copy_recurrence_spec(unfolding_recurrence_spec) as current_rec_spec:
-                #return unfold_within_rec_spec(eq_in_nf, current_rec_spec)
-                normalized_eq = eq_in_nf
+        with    bind_Mul_indexed(eq.lhs, indexed) as (coeff, subscripts), \
+                bind(dict(zip(index, subscripts)), single=True) as subscripts_rel, \
+                isolated_lhs_normal_form(eq, subscripts_rel) as eq_in_nf:
+                    #copy_recurrence_spec(unfolding_recurrence_spec) as current_rec_spec:
+                    #return unfold_within_rec_spec(eq_in_nf, current_rec_spec)
+                    normalized_eq = eq_in_nf
 
         print(eq_in_nf)
 
@@ -86,15 +86,15 @@ class recurrence_spec:
 
             print('Unfolding of {}'.format(rhs_term))
             unfolded_term = None
-            with bind_Mul_indexed(rhs_term, indexed) as (coeff, subscripts):
-                constraints = dict(zip(index, subscripts))
-                with instantiate_eq(normalized_eq, constraints) as instantiated_eq, \
-                     bind_Mul_indexed(instantiated_eq.lhs, indexed) as (coeff_lhs, _):
+            with    bind_Mul_indexed(rhs_term, indexed) as (coeff, subscripts), \
+                    bind(dict(zip(index, subscripts)), single=True) as constraints, \
+                    instantiate_eq(normalized_eq, constraints) as instantiated_eq, \
+                    bind_Mul_indexed(instantiated_eq.lhs, indexed) as (coeff_lhs, _):
                         #print("normalized {}".format(normalized_eq))
                         #print("instantiated {}".format(instantiated_eq))
                         #print("{} vs {}".format(coeff_lhs, coeff))
-                        unfolded_term = instantiated_eq.rhs 
-                        unfolded_term /= 1 if coeff == coeff_lhs else coeff_lhs
+
+                        unfolded_term = instantiated_eq.rhs * (coeff/coeff_lhs)# if coeff != coeff_lhs else 1)
                         #else:
                             #plain_eq = Eq(instantiated_eq.lhs/coeff_lhs, instantiated_eq.rhs/coeff_lhs)
 
@@ -120,6 +120,9 @@ class recurrence_spec:
             #if unfolded_term: terms_cache[rhs_term] = unfolded_term
             #else: unfolded_term = rhs_term 
 
+            # here we could perform a simplification using:
+            #simplified_eq = Eq(rhs_term, unfolded_term).simplify() 
+            #terms_cache[simplified_eq.lhs] = simplified_eq.rhs
             terms_cache[rhs_term] = unfolded_term
             print(unfolded_term)
 

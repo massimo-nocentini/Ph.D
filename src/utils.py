@@ -22,4 +22,6 @@ def fmap_on_dict(doer, on, on_key=True, on_value=True):
     '''
     yield {(doer(k) if on_key else k): (doer(v) if on_value else v) for k,v in on.items()}
 
-
+@contextmanager
+def bind(*args, single=False):
+    yield args[0] if single else args

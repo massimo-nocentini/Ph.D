@@ -241,7 +241,7 @@ def project_recurrence_spec(recurrence_spec, **props):
 
 
 def times_higher_order_operator(
-        recurrence_spec, 
+        rec_spec, 
         base_index,
         subsume_sols,
         times_range=range(6), 
@@ -250,28 +250,24 @@ def times_higher_order_operator(
         include_last_terms_cache=False,
         first_order=True,):
 
-    initial_terms_cache = recurrence_spec.terms_cache.copy()
+    comprehensive_terms_cache = {}
 
     def worker(working_steps):
 
-        unfolded_evaluated_spec = do_unfolding_steps(
-            recurrence_spec, working_steps, factor_rhs=True, first_order=first_order)
+        unfolded_evaluated_spec = rec_spec.unfold(working_steps, first_order)
 
-        recurrence_spec.terms_cache.update(unfolded_evaluated_spec.terms_cache)
+        comprehensive_terms_cache.update(unfolded_evaluated_spec.terms_cache)
 
         processed_recurrence_spec = unfolded_evaluated_spec
         if instantiate: 
-            processed_recurrence_spec = base_instantiation(
-                processed_recurrence_spec, base_index, subsume_sols)
+            processed_recurrence_spec = processed_recurrence_spec.instantiate(
+                strategy=based(base_index, subsume_sols))
 
         return operator(processed_recurrence_spec, working_steps)
 
     mapped = map(worker, times_range)
 
-    last_terms_cache = recurrence_spec.terms_cache.copy()
-    recurrence_spec.terms_cache.update(initial_terms_cache)
-
-    return (mapped, last_terms_cache) if include_last_terms_cache else mapped 
+    return (mapped, comprehensive_terms_cache) if include_last_terms_cache else mapped 
 
 
 
@@ -366,8 +362,8 @@ def fix_combination(eqs, adjust, fix):
 
 def latex_array_env(*args, **kwd):
     
-    def eqnarray_entry_for_eq(recurrence_spec, working_steps):
-        return latex(recurrence_spec.recurrence_eq) + r"\\"
+    def eqnarray_entry_for_eq(rec_spec, working_steps):
+        return latex(rec_spec.recurrence_eq) + r"\\"
 
     mapped = times_higher_order_operator(*args, operator=eqnarray_entry_for_eq, **kwd)
     template = Template(r"""\begin{array}{c}$content\end{array}""")

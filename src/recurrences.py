@@ -62,8 +62,6 @@ class recurrence_spec:
         with    bind_Mul_indexed(eq.lhs, indexed) as (coeff, subscripts), \
                 bind(dict(zip(index, subscripts)), single=True) as subscripts_rel, \
                 isolated_lhs_normal_form(eq, subscripts_rel) as eq_in_nf:
-                    #copy_recurrence_spec(unfolding_recurrence_spec) as current_rec_spec:
-                    #return unfold_within_rec_spec(eq_in_nf, current_rec_spec)
                     normalized_eq = eq_in_nf
 
         def unfolding(rhs_term):
@@ -92,23 +90,100 @@ class recurrence_spec:
                         reducer=lambda reduced, term: not_evaluated_Add(reduced, term), 
                         initializer=Integer(0)) as folded_rhs_term:
             return recurrence_spec(recurrence_eq=Eq(unfolding_recurrence_eq.lhs, folded_rhs_term), 
-                                    recurrence_symbol=indexed, 
-                                    variables=index, 
-                                    terms_cache=terms_cache)
+                                   recurrence_symbol=indexed, 
+                                   variables=index, 
+                                   terms_cache=terms_cache)
 
     def factor(self, *gens, **kwds):
 
-        rec_eq = self.recurrence_eq
+        eq = self.recurrence_eq
+        rhs = factor(eq.rhs, *gens, **kwds)
 
-        indexed_terms_in_rec = indexed_terms_appearing_in(rec_eq.rhs, self.indexed)
-
-        rhs = Poly(rec_eq.rhs, *(indexed_terms_in_rec + list(gens)), **kwds).args[0]
-
-        return recurrence_spec( recurrence_eq=Eq(rec_eq.lhs, rhs),
+        return recurrence_spec( recurrence_eq=Eq(eq.lhs, rhs),
                                 recurrence_symbol=self.indexed,
                                 variables=self.index,
                                 terms_cache=copy.copy(self.terms_cache))  
 
+    def subsume(self, additional_terms={}):
+
+        def worker(previous_terms_cache, do_one_more_step):
+        
+            if not do_one_more_step: return previous_terms_cache
+            else: do_one_more_step = False
+                
+            def subterm_mapping(subterm):    
+                    
+                nonlocal do_one_more_step
+                new_subterm = subterm
+                
+                if subterm.free_symbols:
+                    new_subterm = subterm.subs(previous_terms_cache)
+                    if subterm != new_subterm: do_one_more_step = True
+                    
+                return new_subterm
+                
+            with fmap_on_dict(  on=previous_terms_cache, 
+                                value_doer=subterm_mapping, 
+                                also_for_keys=False) as current_terms_cache:
+                return worker(current_terms_cache, do_one_more_step)
+
+        
+        additional_terms.update(self.terms_cache)
+        return worker(additional_terms, do_one_more_step=True)
+
+    def instantiate(self, strategy):
+
+        solutions = strategy.dispatch_instantiate_on(target=self)
+
+        def subs_sols_into(term): 
+            return term.subs(solutions, simultaneous=True)
+
+        with fmap_on_dict(  on=self.terms_cache, 
+                            key_doer=subs_sols_into, 
+                            also_for_values=True) as new_terms_cache:
+
+            return recurrence_spec(recurrence_eq=subs_sols_into(self.recurrence_eq),
+                        recurrence_symbol=self.indexed, 
+                        variables=solutions, terms_cache=new_terms_cache)
+
+    def _instantiate_by_raw(self, dispatcher):
+        return dispatcher.substitutions
+
+    def _instantiate_by_based(self, dispatcher):
+
+        valid_equations = []
+        rhs_summands = explode_term_respect_to(self.recurrence_eq.rhs, cls=Add, deep=True)
+        for rhs_term in rhs_summands:
+            try:
+                with bind_Mul_indexed(rhs_term, self.indexed) as (_, subscripts):
+                    eqs = {var: solve(Eq(base, rel), var).pop() 
+                           for var, base, rel in zip(self.index, dispatcher.base_index, subscripts)} 
+                    valid_equations.append(eqs)
+            except DestructuringError: 
+                continue
+        
+        return dispatcher.subsume_sols(self, valid_equations)
+
+
+class raw:
+
+    def __init__(self, substitutions):
+        self.substitutions = substitutions
+
+    def dispatch_instantiate_on(self, target):
+        return target._instantiate_by_raw(dispatcher=self)
+
+class based:
+
+    def __init__(self, base_index, subsume_sols):
+        self.base_index = base_index
+        self.subsume_sols = subsume_sols
+
+    def dispatch_instantiate_on(self, target):
+        return target._instantiate_by_based(dispatcher=self)
+
+
+#________________________________________________________________________
 
 def take_apart_matched(term, indexed):
     
@@ -155,28 +230,6 @@ def doubly_subscripts_subsume_sols(dummy_sym):
 
     return subsume
 
-def base_instantiation(recurrence_spec, base_index, subsume_sols):
-
-    valid_equations = []
-    rhs_summands = explode_term_respect_to(recurrence_spec.recurrence_eq.rhs, cls=Add, deep=True)
-    for rhs_term in rhs_summands:
-        try:
-            with bind_Mul_indexed(rhs_term, recurrence_spec.indexed) as (_, subscripts):
-                eqs = {var: solve(Eq(base, rel), var).pop() 
-                        for var, base, rel in zip(recurrence_spec.index, base_index, subscripts)} 
-                valid_equations.append(eqs)
-        except DestructuringError: 
-            pass
-    
-    solutions = subsume_sols(recurrence_spec, valid_equations)
-
-    def subs_sols_into(term): 
-        return term.subs(solutions, simultaneous=True)
-
-    with fmap_on_dict(doer=subs_sols_into, on=recurrence_spec.terms_cache) as new_terms_cache:
-        return make_recurrence_spec(recurrence_eq=subs_sols_into(recurrence_spec.recurrence_eq),
-                    indexed=recurrence_spec.indexed, index=solutions, terms_cache=new_terms_cache)
-
 
 def project_recurrence_spec(recurrence_spec, **props):
     
@@ -221,40 +274,6 @@ def times_higher_order_operator(
     return (mapped, last_terms_cache) if include_last_terms_cache else mapped 
 
 
-def repeated_instantiating(recurrence_spec):
-    
-    def worker(previous_terms_cache, do_one_more_step):
-    
-        if not do_one_more_step: return previous_terms_cache
-        else: do_one_more_step = False
-            
-        def subterm_mapping(subterm):    
-                
-            nonlocal do_one_more_step
-            new_subterm = subterm
-            
-            if subterm.free_symbols:
-                new_subterm = subterm.subs(previous_terms_cache)
-                if subterm != new_subterm: do_one_more_step = True
-                
-            return new_subterm
-            
-        current_terms_cache = { k:subterm_mapping(v) for k,v in previous_terms_cache.items() }
-        
-        return worker(current_terms_cache, do_one_more_step)
-
-    
-    fully_instantiated_terms_cache = worker(recurrence_spec.terms_cache, 
-                                            do_one_more_step=True)
-    
-    fully_instantiated_rec_eq = recurrence_spec.recurrence_eq.subs(
-        fully_instantiated_terms_cache)
-    
-    return make_recurrence_spec(
-                recurrence_eq=fully_instantiated_rec_eq, 
-                indexed=recurrence_spec.indexed,
-                index=recurrence_spec.index,
-                terms_cache=fully_instantiated_terms_cache)
 
 def take_sol(*args, sol_index=0):
     sols = solve(*args)

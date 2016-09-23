@@ -14,13 +14,17 @@ def map_reduce(on, doer, reducer, initializer=None):
 
 
 @contextmanager
-def fmap_on_dict(doer, on, on_key=True, on_value=True):
+def fmap_on_dict(on, key_doer=lambda k: k, value_doer=lambda v: v, 
+                 also_for_values=False, also_for_keys=False):
     '''
     Apply `doer` to the given mapping, inspired to `Functor`s in Haskell.
 
     It is possible to choose to apply `doer` to both (key, value) pair or only partially.
     '''
-    yield {(doer(k) if on_key else k): (doer(v) if on_value else v) for k,v in on.items()}
+    if key_doer and also_for_values: value_doer = key_doer
+    elif value_doer and also_for_keys: key_doer = value_doer
+
+    yield {key_doer(k): value_doer(v) for k,v in on.items()}
 
 @contextmanager
 def bind(*args, single=False):

@@ -2,7 +2,6 @@
 import copy
 from functools import reduce
 from string import Template
-from collections import namedtuple
 
 from sympy import *
 from sympy.printing.latex import latex
@@ -13,8 +12,6 @@ from destructuring import *
 from equations import *
 from terms import *
 
-RecurrenceSpec = namedtuple('RecurrenceSpec', 
-                            'recurrence_eq, index, indexed, terms_cache')
 
 class recurrence_spec:
 
@@ -24,12 +21,12 @@ class recurrence_spec:
         self.index = variables # rename to `indexes`
         self.terms_cache = terms_cache
         
-    def description(self, include_terms_cache=False):
+    def description(self, include_terms_cache=False, doit=False):
         from IPython.display import Markdown
         src = 'Recurrence formal symbol ${fs}$, indexed by ${variables}$, in relation:\n\n$${eq}$$'
         src = src.format(   fs=latex(self.indexed), 
                             variables=", ".join(map(latex, self.index)), 
-                            eq=latex(self.recurrence_eq))
+                            eq=latex(self.recurrence_eq.doit() if doit else self.recurrence_eq))
 
         if include_terms_cache and self.terms_cache: 
             src += "\n\nwith unfolded terms:\n\n$${terms}$$".format(terms=
@@ -38,7 +35,7 @@ class recurrence_spec:
         return Markdown(src)
 
 
-    def unfold(self, steps=1, first_order=True):
+    def unfold(self, depth=1, first_order=True):
             
         def first_order_reducer(folding_recurrence_spec, step): 
             return folding_recurrence_spec.rewrite(according_to=self)
@@ -48,7 +45,7 @@ class recurrence_spec:
 
         unfolded_recurrence_spec = reduce(
             first_order_reducer if first_order else second_order_reducer, 
-            range(steps), self)
+            range(depth), self)
         
         return unfolded_recurrence_spec
 
@@ -129,7 +126,12 @@ class recurrence_spec:
 
         
         additional_terms.update(self.terms_cache)
-        return worker(additional_terms, do_one_more_step=True)
+        subsumed_terms_cache = worker(additional_terms, do_one_more_step=True)
+
+        return recurrence_spec( recurrence_eq=self.recurrence_eq,
+                                recurrence_symbol=self.indexed,
+                                variables=self.index,
+                                terms_cache=subsumed_terms_cache)
 
     def instantiate(self, strategy):
 
@@ -152,18 +154,48 @@ class recurrence_spec:
     def _instantiate_by_based(self, dispatcher):
 
         valid_equations = []
+
         rhs_summands = explode_term_respect_to(self.recurrence_eq.rhs, cls=Add, deep=True)
         for rhs_term in rhs_summands:
             try:
                 with bind_Mul_indexed(rhs_term, self.indexed) as (_, subscripts):
                     eqs = {var: solve(Eq(base, rel), var).pop() 
-                           for var, base, rel in zip(self.index, dispatcher.base_index, subscripts)} 
+                           for var, base, rel in zip(self.index, 
+                                                     dispatcher.arity.base_index, 
+                                                     subscripts)} 
                     valid_equations.append(eqs)
             except DestructuringError: 
                 continue
         
-        return dispatcher.subsume_sols(self, valid_equations)
+        return dispatcher.arity.subsume_sols(self, valid_equations)
 
+
+    def map(self, arity, depths, 
+            operator=lambda *args: args,
+            based_instantiation=True, 
+            return_comprehensive_terms_cache=False,
+            **kwds):
+
+        # input destructuring to forward to composed functions
+        first_order = kwds.get('first_order', True)
+
+        comprehensive_terms_cache = {}
+
+        def worker(depth):
+
+            unfolded_evaluated_spec = self.unfold(depth, first_order)
+
+            comprehensive_terms_cache.update(unfolded_evaluated_spec.terms_cache)
+
+            processed_recurrence_spec = unfolded_evaluated_spec
+            if based_instantiation: 
+                processed_recurrence_spec = processed_recurrence_spec.instantiate(strategy=based(arity))
+
+            return operator(processed_recurrence_spec, depth)
+
+        mapped = map(worker, depths)
+
+        return (mapped, comprehensive_terms_cache) if return_comprehensive_terms_cache else mapped 
 
 class raw:
 
@@ -175,13 +207,51 @@ class raw:
 
 class based:
 
-    def __init__(self, base_index, subsume_sols):
-        self.base_index = base_index
-        self.subsume_sols = subsume_sols
+    def __init__(self, arity):
+        self.arity = arity
 
     def dispatch_instantiate_on(self, target):
         return target._instantiate_by_based(dispatcher=self)
 
+class unary_indexed: 
+
+    def __init__(self, base_index=[0]):
+        self.base_index = base_index
+
+    def subsume_sols(self, recurrence_spec, eqs):
+        index, = recurrence_spec.index
+        items = []
+        for subscripts_eqs in eqs:
+            k, v = subscripts_eqs.popitem()
+            items.append(v)
+        return {index:max(items)}
+
+class doubly_indexed: 
+
+    def __init__(self, base_index=[None, 0]):
+        _, k_index = base_index
+        self.base_index = [Dummy(), k_index]
+
+    def subsume_sols(self, recurrence_spec, eqs):
+        n, k = recurrence_spec.index
+        dummy_sym, k_index = self.base_index
+        max_k_value = max([subscripts_eqs[k] for subscripts_eqs in eqs])
+        instantiated_lhs = recurrence_spec.recurrence_eq.lhs.subs(k, max_k_value)
+        with bind_Mul_indexed(instantiated_lhs, recurrence_spec.indexed) as (_, (nb, kb)):
+            max_n_value = max([subscripts_eqs[n].subs(dummy_sym, kb) for subscripts_eqs in eqs])
+        return {n:max_n_value, k:max_k_value}
+
+def ipython_latex_description(rec_spec, *args, **kwds):
+    
+    from IPython.display import Latex
+
+    kwds['operator'] = lambda rec_spec, depth: latex(rec_spec.recurrence_eq) + r"\\"
+
+    mapped = rec_spec.map(*args, **kwds)
+    template = Template(r"""\begin{array}{c}$content\end{array}""")
+    latex_src = template.substitute(content="\n".join(mapped))
+
+    return Latex(latex_src)
 
 #________________________________________________________________________
 
@@ -210,25 +280,9 @@ def take_apart_matched(term, indexed):
 
 
 
-def unary_subscripts_subsume_sols(recurrence_spec, eqs):
-    index, = recurrence_spec.index
-    items = []
-    for subscripts_eqs in eqs:
-        k, v = subscripts_eqs.popitem()
-        items.append(v)
-    return {index:max(items)}
 
-def doubly_subscripts_subsume_sols(dummy_sym):
 
-    def subsume(recurrence_spec, eqs):
-        n, k = recurrence_spec.index
-        max_k_value = max([subscripts_eqs[k] for subscripts_eqs in eqs])
-        instantiated_lhs = recurrence_spec.recurrence_eq.lhs.subs(k, max_k_value)
-        with bind_Mul_indexed(instantiated_lhs, recurrence_spec.indexed) as (_, (nb, kb)):
-            max_n_value = max([subscripts_eqs[n].subs(dummy_sym, kb) for subscripts_eqs in eqs])
-        return {n:max_n_value, k:max_k_value}
 
-    return subsume
 
 
 def project_recurrence_spec(recurrence_spec, **props):
@@ -240,34 +294,6 @@ def project_recurrence_spec(recurrence_spec, **props):
     return projected[0] if len(projected) == 1 else tuple(projected)
 
 
-def times_higher_order_operator(
-        rec_spec, 
-        base_index,
-        subsume_sols,
-        times_range=range(6), 
-        operator=lambda *args: tuple(args), 
-        instantiate=True, 
-        include_last_terms_cache=False,
-        first_order=True,):
-
-    comprehensive_terms_cache = {}
-
-    def worker(working_steps):
-
-        unfolded_evaluated_spec = rec_spec.unfold(working_steps, first_order)
-
-        comprehensive_terms_cache.update(unfolded_evaluated_spec.terms_cache)
-
-        processed_recurrence_spec = unfolded_evaluated_spec
-        if instantiate: 
-            processed_recurrence_spec = processed_recurrence_spec.instantiate(
-                strategy=based(base_index, subsume_sols))
-
-        return operator(processed_recurrence_spec, working_steps)
-
-    mapped = map(worker, times_range)
-
-    return (mapped, comprehensive_terms_cache) if include_last_terms_cache else mapped 
 
 
 
@@ -360,18 +386,9 @@ def fix_combination(eqs, adjust, fix):
 
     return map(w, eqs)
 
-def latex_array_env(*args, **kwd):
-    
-    def eqnarray_entry_for_eq(rec_spec, working_steps):
-        return latex(rec_spec.recurrence_eq) + r"\\"
-
-    mapped = times_higher_order_operator(*args, operator=eqnarray_entry_for_eq, **kwd)
-    template = Template(r"""\begin{array}{c}$content\end{array}""")
-
-    return template.substitute(content="\n".join(mapped))
 
 
-def ipython_latex(*args, **kwd):
-    
-    from IPython.display import Latex
-    return Latex(latex_array_env(*args, **kwd))
+
+
+
+

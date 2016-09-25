@@ -1,6 +1,7 @@
 
 import functools
 from contextlib import contextmanager
+from functools import partial
 
 
 
@@ -29,3 +30,15 @@ def fmap_on_dict(on, key_doer=lambda k: k, value_doer=lambda v: v,
 @contextmanager
 def bind(*args, single=False):
     yield args[0] if single else args
+
+
+class dispatch_message:
+
+    def __init__(self, variety, target):
+        self.variety = variety
+        self.target = target
+    
+    def __getattr__(self, name): 
+        dispatched_name = '_{}_by_{}'.format(name, type(self.variety).__name__)
+        return partial(getattr(self.target, dispatched_name), dispatcher=self.variety)
+        

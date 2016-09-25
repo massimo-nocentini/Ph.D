@@ -8,6 +8,7 @@ from sympy.printing.latex import latex
 
 from utils import *
 
+from instantiating import *
 from destructuring import *
 from equations import *
 from terms import *
@@ -135,7 +136,7 @@ class recurrence_spec:
 
     def instantiate(self, strategy):
 
-        solutions = strategy.dispatch_instantiate_on(target=self)
+        solutions = dispatch_message(variety=strategy, target=self).instantiate()
 
         def subs_sols_into(term): 
             return term.subs(solutions, simultaneous=True)
@@ -147,6 +148,9 @@ class recurrence_spec:
             return recurrence_spec(recurrence_eq=subs_sols_into(self.recurrence_eq),
                         recurrence_symbol=self.indexed, 
                         variables=solutions, terms_cache=new_terms_cache)
+
+    # dispatched messages  {{{
+    #________________________________________________________________________
 
     def _instantiate_by_raw(self, dispatcher):
         return dispatcher.substitutions
@@ -167,7 +171,28 @@ class recurrence_spec:
             except DestructuringError: 
                 continue
         
-        return dispatcher.arity.subsume_sols(self, valid_equations)
+        return dispatch_message(variety=dispatcher.arity, 
+                                target=self).subsume_sols(eqs=valid_equations)
+
+    def _subsume_sols_by_unary_indexed(self, dispatcher, eqs):
+        items = []
+        for subscripts_eqs in eqs:
+            k, v = subscripts_eqs.popitem()
+            items.append(v)
+
+        with bind(self.index, single=True) as (index,):
+            return {index:max(items)}
+
+    def _subsume_sols_by_doubly_indexed(self, dispatcher, eqs):
+        n, k = self.index
+        dummy_sym, k_index = dispatcher.base_index
+        max_k_value = max([subscripts_eqs[k] for subscripts_eqs in eqs])
+        instantiated_lhs = self.recurrence_eq.lhs.subs(k, max_k_value)
+        with bind_Mul_indexed(instantiated_lhs, self.indexed) as (_, (nb, kb)):
+            max_n_value = max([subscripts_eqs[n].subs(dummy_sym, kb) for subscripts_eqs in eqs])
+        return {n:max_n_value, k:max_k_value}
+
+    #________________________________________________________________________}}}
 
 
     def map(self, arity, depths, 
@@ -196,50 +221,6 @@ class recurrence_spec:
         mapped = map(worker, depths)
 
         return (mapped, comprehensive_terms_cache) if return_comprehensive_terms_cache else mapped 
-
-class raw:
-
-    def __init__(self, substitutions):
-        self.substitutions = substitutions
-
-    def dispatch_instantiate_on(self, target):
-        return target._instantiate_by_raw(dispatcher=self)
-
-class based:
-
-    def __init__(self, arity):
-        self.arity = arity
-
-    def dispatch_instantiate_on(self, target):
-        return target._instantiate_by_based(dispatcher=self)
-
-class unary_indexed: 
-
-    def __init__(self, base_index=[0]):
-        self.base_index = base_index
-
-    def subsume_sols(self, recurrence_spec, eqs):
-        index, = recurrence_spec.index
-        items = []
-        for subscripts_eqs in eqs:
-            k, v = subscripts_eqs.popitem()
-            items.append(v)
-        return {index:max(items)}
-
-class doubly_indexed: 
-
-    def __init__(self, base_index=[None, 0]):
-        _, k_index = base_index
-        self.base_index = [Dummy(), k_index]
-
-    def subsume_sols(self, recurrence_spec, eqs):
-        n, k = recurrence_spec.index
-        dummy_sym, k_index = self.base_index
-        max_k_value = max([subscripts_eqs[k] for subscripts_eqs in eqs])
-        instantiated_lhs = recurrence_spec.recurrence_eq.lhs.subs(k, max_k_value)
-        with bind_Mul_indexed(instantiated_lhs, recurrence_spec.indexed) as (_, (nb, kb)):
-            max_n_value = max([subscripts_eqs[n].subs(dummy_sym, kb) for subscripts_eqs in eqs])
-        return {n:max_n_value, k:max_k_value}
 
 def ipython_latex_description(rec_spec, *args, **kwds):
     

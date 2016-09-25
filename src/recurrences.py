@@ -14,7 +14,7 @@ from equations import *
 from terms import *
 
 
-class recurrence_spec:
+class recurrence_spec: # {{{
 
     def __init__(self, recurrence_eq, recurrence_symbol, variables, terms_cache={}):
         self.recurrence_eq = recurrence_eq
@@ -36,19 +36,6 @@ class recurrence_spec:
         return Markdown(src)
 
 
-    def unfold(self, depth=1, first_order=True):
-            
-        def first_order_reducer(folding_recurrence_spec, step): 
-            return folding_recurrence_spec.rewrite(according_to=self)
-        
-        def second_order_reducer(folding_recurrence_spec, step):
-            return folding_recurrence_spec.rewrite(according_to=folding_recurrence_spec)
-
-        unfolded_recurrence_spec = reduce(
-            first_order_reducer if first_order else second_order_reducer, 
-            range(depth), self)
-        
-        return unfolded_recurrence_spec
 
     def rewrite(self, according_to):
 
@@ -194,6 +181,22 @@ class recurrence_spec:
 
     #________________________________________________________________________}}}
 
+    # higher order "operators" {{{
+    #________________________________________________________________________
+
+    def unfold(self, depth=1, first_order=True):
+            
+        def first_order_reducer(folding_recurrence_spec, step): 
+            return folding_recurrence_spec.rewrite(according_to=self)
+        
+        def second_order_reducer(folding_recurrence_spec, step):
+            return folding_recurrence_spec.rewrite(according_to=folding_recurrence_spec)
+
+        unfolded_recurrence_spec = reduce(
+            first_order_reducer if first_order else second_order_reducer, 
+            range(depth), self)
+        
+        return unfolded_recurrence_spec
 
     def map(self, arity, depths, 
             operator=lambda *args: args,
@@ -222,6 +225,11 @@ class recurrence_spec:
 
         return (mapped, comprehensive_terms_cache) if return_comprehensive_terms_cache else mapped 
 
+    #________________________________________________________________________}}}
+
+# end of class `recurrence_spec` }}}
+
+
 def ipython_latex_description(rec_spec, *args, **kwds):
     
     from IPython.display import Latex
@@ -234,6 +242,7 @@ def ipython_latex_description(rec_spec, *args, **kwds):
 
     return Latex(latex_src)
 
+# To be refactored {{{
 #________________________________________________________________________
 
 def take_apart_matched(term, indexed):
@@ -254,18 +263,6 @@ def take_apart_matched(term, indexed):
 
     return result
 
-
-
-
-
-
-
-
-
-
-
-
-
 def project_recurrence_spec(recurrence_spec, **props):
     
     projected = []
@@ -273,9 +270,6 @@ def project_recurrence_spec(recurrence_spec, **props):
         if v and k in recurrence_spec: projected.append(recurrence_spec[k])
 
     return projected[0] if len(projected) == 1 else tuple(projected)
-
-
-
 
 
 def take_sol(*args, sol_index=0):
@@ -367,7 +361,7 @@ def fix_combination(eqs, adjust, fix):
 
     return map(w, eqs)
 
-
+#________________________________________________________________________}}}
 
 
 

@@ -22,9 +22,18 @@ class recurrence_spec: # {{{
         self.index = variables # rename to `indexes`
         self.terms_cache = terms_cache
         
-    def description(self, include_terms_cache=True, doit=True):
+    def _repr_html_(self): 
+        '''
+        Jupyter notebook integration for pretty printing
+
+        Taken from: http://ipython.readthedocs.io/en/stable/config/integrating.html
+        '''
+
         from IPython.display import Markdown
-        src = 'Recurrence formal symbol ${fs}$, indexed by ${variables}$, in relation:\n\n$${eq}$$'
+
+        include_terms_cache, doit = True, True
+
+        src = 'Recurrence formal symbol ${fs}$, indexed by ${variables}$, in relation:<br><br>$${eq}$$'
         src = src.format(   fs=latex(self.indexed), 
                             variables=", ".join(map(latex, self.index)), 
                             eq=latex(self.recurrence_eq.doit() if doit else self.recurrence_eq))
@@ -33,7 +42,7 @@ class recurrence_spec: # {{{
             src += "\n\nwith unfolded terms:\n\n$${terms}$$".format(terms=
                     latex({Eq(k, v) for k, v in self.terms_cache.items()}))
 
-        return Markdown(src)
+        return src
 
 
 

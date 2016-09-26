@@ -42,3 +42,17 @@ class dispatch_message:
         dispatched_name = '_{}_by_{}'.format(name, type(self.variety).__name__)
         return partial(getattr(self.target, dispatched_name), dispatcher=self.variety)
         
+def invert_dict(mapping, check_bijection=True):
+
+    inverted = {}
+    
+    if check_bijection:
+        for k,v in mapping.items():
+            if v in inverted: 
+                explanation = "Conflict on inverted value {}: trying to put {} onto {}"
+                raise Exception(explanation.format(str(v), str(k), str(inverted[v])))
+            inverted[v] = k
+    else:
+        inverted.update({v:k for k,v in mapping.items()})
+
+    return inverted

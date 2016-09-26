@@ -22,7 +22,7 @@ class recurrence_spec: # {{{
         self.index = variables # rename to `indexes`
         self.terms_cache = terms_cache
         
-    def description(self, include_terms_cache=False, doit=False):
+    def description(self, include_terms_cache=True, doit=True):
         from IPython.display import Markdown
         src = 'Recurrence formal symbol ${fs}$, indexed by ${variables}$, in relation:\n\n$${eq}$$'
         src = src.format(   fs=latex(self.indexed), 
@@ -340,18 +340,6 @@ def to_matrix_notation(eqs, indexed, order):
     #return Eq(Mul(comb_matrix, comb_vector, evaluate=False), Matrix(lhs_vector), evaluate=False)
     return comb_matrix, comb_vector, Matrix(lhs_vector)
 
-def invert_dict(a_dict, check_bijection=True):
-
-    inverted = {}
-    
-    if check_bijection:
-        for k,v in a_dict.items():
-            if v in inverted: raise Exception("v is mapped at least by k and inverted[v], not a bijection")
-            inverted.update({v:k})
-    else:
-        inverted.update({v:k for k,v in a_dict.items()})
-
-    return inverted
 
 def fix_combination(eqs, adjust, fix):
     

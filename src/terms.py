@@ -2,14 +2,14 @@
 from sympy import flatten, Add, preorder_traversal
 from destructuring import *
 
-def explode_term_respect_to(term, cls, deep=False):
+def explode_term_respect_to(term, cls, deep=False, container=list):
 
     exploded = [term] # we start with the given term since we've to build a list, eventually
 
     if isinstance(term, cls): 
         exploded = flatten(term.expand().args, cls=cls) if deep else term.args
 
-    return exploded
+    return container(exploded)
 
 def not_evaluated_Add(*args, **kwds):
     '''

@@ -6,8 +6,9 @@ from string import Template
 from sympy import *
 from sympy.printing.latex import latex
 
-from utils import *
+import itertools 
 
+from utils import *
 from instantiating import *
 from destructuring import *
 from equations import *
@@ -22,28 +23,47 @@ class recurrence_spec: # {{{
         self.index = variables # rename to `indexes`
         self.terms_cache = terms_cache
         
-    def _repr_html_(self): 
+    # display and representation messages  {{{
+    #________________________________________________________________________
+
+    def _repr_html_(self, include_terms_cache=True, doit=True):
         '''
         Jupyter notebook integration for pretty printing
 
         Taken from: http://ipython.readthedocs.io/en/stable/config/integrating.html
         '''
 
-        from IPython.display import Markdown
+        def subscripts_of(key):
+            with bind_Mul_indexed(key, self.indexed) as (_, subscripts):
+                return tuple(subscripts)
 
-        include_terms_cache, doit = True, True
 
-        src = 'Recurrence formal symbol ${fs}$, indexed by ${variables}$, in relation:<br><br>$${eq}$$'
-        src = src.format(   fs=latex(self.indexed), 
-                            variables=", ".join(map(latex, self.index)), 
-                            eq=latex(self.recurrence_eq.doit() if doit else self.recurrence_eq))
+        substitutions = dict(zip(self.index, itertools.repeat(0)))
+        keys_with_integral_subscripts = {k.subs(substitutions):k for k in self.terms_cache}
+        integral_subscrips = {subscripts_of(k):k for k in keys_with_integral_subscripts}
+        sorted_subscripts = sorted(integral_subscrips.keys())
+        ordered_terms_cache = [Eq(symbolic_key, self.terms_cache[symbolic_key]) 
+                                for k in sorted_subscripts
+                                for symbolic_key in [keys_with_integral_subscripts[integral_subscrips[k]]]]
 
-        if include_terms_cache and self.terms_cache: 
-            src += "\n\nwith unfolded terms:\n\n$${terms}$$".format(terms=
-                    latex({Eq(k, v) for k, v in self.terms_cache.items()}))
+
+        src = r'$\left(\Theta, \Gamma\right)_{{{index}}}^{{{sym}}}$ where: <br><ul>{Theta}{Gamma}</ul>'.format(
+            sym=latex(self.indexed),
+            index=','.join(map(latex, self.index)),
+            #index=latex(self.index),
+            Theta=r'<li>$\Theta = \left\{{ {rec_eqs} \right\}}$</li>'.format(
+                rec_eqs=latex(self.recurrence_eq.doit() if doit else self.recurrence_eq)),
+            Gamma=r'<li>$\Gamma = \left\{{\begin{{array}}{{c}}{terms_cache}\end{{array}}\right\}}$</li>'.format(
+                terms_cache=r'\\'.join(map(latex, ordered_terms_cache))))
 
         return src
 
+    def description_markdown(self, **kwds):
+
+        from IPython.display import Markdown
+        return Markdown(self._repr_html_(**kwds))
+
+    #________________________________________________________________________}}}
 
 
     def rewrite(self, according_to):
@@ -129,11 +149,24 @@ class recurrence_spec: # {{{
                                 recurrence_symbol=self.indexed,
                                 variables=self.index,
                                 terms_cache=subsumed_terms_cache)
+        
+    def subs_gammaset(self, substitutions):
+        with fmap_on_dict(  on=self.terms_cache, 
+                            value_doer=lambda v: v.subs(substitutions, simultaneous=True)) as subs_terms_cache:
+            return recurrence_spec( recurrence_eq=self.recurrence_eq.subs(substitutions, simultaneous=True),
+                                    recurrence_symbol=self.indexed,
+                                    variables=self.index,
+                                    terms_cache=subs_terms_cache)
+
+    def project_gammaset(self):
+        return recurrence_spec( recurrence_eq=self.recurrence_eq.subs(self.terms_cache, simultaneous=True),
+                                recurrence_symbol=self.indexed,
+                                variables=self.index,
+                                terms_cache=self.terms_cache) 
 
     def instantiate(self, strategy):
 
         solutions = dispatch_message(variety=strategy, target=self).instantiate()
-
         def subs_sols_into(term): 
             return term.subs(solutions, simultaneous=True)
 
@@ -143,7 +176,7 @@ class recurrence_spec: # {{{
 
             return recurrence_spec(recurrence_eq=subs_sols_into(self.recurrence_eq),
                         recurrence_symbol=self.indexed, 
-                        variables=solutions, terms_cache=new_terms_cache)
+                        variables=self.index, terms_cache=new_terms_cache)
 
     # dispatched messages  {{{
     #________________________________________________________________________
@@ -155,7 +188,7 @@ class recurrence_spec: # {{{
 
         valid_equations = []
 
-        rhs_summands = explode_term_respect_to(self.recurrence_eq.rhs, cls=Add, deep=True)
+        rhs_summands = explode_term_respect_to(self.recurrence_eq.rhs, cls=Add, deep=True, container=set)
         for rhs_term in rhs_summands:
             try:
                 with bind_Mul_indexed(rhs_term, self.indexed) as (_, subscripts):

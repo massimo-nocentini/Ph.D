@@ -170,6 +170,19 @@ class recurrence_spec: # {{{
         return projection.involute(depth=depth-1) if self.recurrence_eq != projection.recurrence_eq else projection
             
 
+    def matrix_vector_product(self, depth, arity, segment):
+
+        mapped_specs = self.map(arity=arity, depths=range(depth), based_instantiation=False, 
+                                operator=lambda spec, depth: spec)
+
+        lhs = self.recurrence_eq.lhs
+        n, = self.index
+        eqs = [Eq(lhs, lhs, evaluate=False)] + [spec.recurrence_eq.doit() for spec in mapped_specs]
+        m, v, r = to_matrix_notation(eqs, self.indexed, [n-k for k in segment])
+        return m, v, r, eqs
+    
+
+
     def instantiate(self, strategy):
 
         solutions = dispatch_message(variety=strategy, target=self).instantiate()

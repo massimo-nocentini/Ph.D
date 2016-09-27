@@ -56,3 +56,20 @@ def invert_dict(mapping, check_bijection=True):
         inverted.update({v:k for k,v in mapping.items()})
 
     return inverted
+
+def latex_array_src(iterable, delimiters='{}'):
+
+    from IPython.display import Latex
+    from sympy.printing.latex import latex
+
+    left, right = delimiters
+
+    src = r'\begin{{array}}{{c}} {content} \end{{array}}'.format(
+        content=r'\\'.join(map(latex, iterable)))
+
+    return Latex(src)
+    #return Latex(r'\left{} {} \right{}'.format(left, src, right))
+
+
+
+

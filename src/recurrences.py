@@ -150,19 +150,25 @@ class recurrence_spec: # {{{
                                 variables=self.index,
                                 terms_cache=subsumed_terms_cache)
         
-    def subs_gammaset(self, substitutions):
+    def subs(self, substitutions):
         with fmap_on_dict(  on=self.terms_cache, 
                             value_doer=lambda v: v.subs(substitutions, simultaneous=True)) as subs_terms_cache:
-            return recurrence_spec( recurrence_eq=self.recurrence_eq.subs(substitutions, simultaneous=True),
+            return recurrence_spec( recurrence_eq=self.recurrence_eq,
                                     recurrence_symbol=self.indexed,
                                     variables=self.index,
                                     terms_cache=subs_terms_cache)
 
-    def project_gammaset(self):
-        return recurrence_spec( recurrence_eq=self.recurrence_eq.subs(self.terms_cache, simultaneous=True),
-                                recurrence_symbol=self.indexed,
-                                variables=self.index,
-                                terms_cache=self.terms_cache) 
+    def involute(self, depth=-1):
+
+        if depth == 0: return self
+        
+        projection = recurrence_spec(recurrence_eq=self.recurrence_eq.subs(self.terms_cache, simultaneous=True),
+                                     recurrence_symbol=self.indexed,
+                                     variables=self.index,
+                                     terms_cache=self.terms_cache) 
+        
+        return projection.involute(depth=depth-1) if self.recurrence_eq != projection.recurrence_eq else projection
+            
 
     def instantiate(self, strategy):
 

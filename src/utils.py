@@ -57,7 +57,7 @@ def invert_dict(mapping, check_bijection=True):
 
     return inverted
 
-def latex_array_src(iterable, delimiters='{}'):
+def latex_array_src(iterable, delimiters='{}', math_environment='displaymath'):
 
     from IPython.display import Latex
     from sympy.printing.latex import latex
@@ -67,7 +67,8 @@ def latex_array_src(iterable, delimiters='{}'):
     src = r'\begin{{array}}{{c}} {content} \end{{array}}'.format(
         content=r'\\'.join(map(latex, iterable)))
 
-    return Latex(src)
+    #return Latex(r'\begin{{{env}}}{src}\end{{{env}}}'.format(src=src, env=math_environment))
+    return Latex(r'$${content}$$'.format(content=src))
     #return Latex(r'\left{} {} \right{}'.format(left, src, right))
 
 
